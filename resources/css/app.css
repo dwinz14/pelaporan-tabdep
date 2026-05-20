@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Google Font: Inter ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    html, body {
+        font-family: 'Inter', 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    /* Custom scrollbar untuk sidebar */
+    ::-webkit-scrollbar {
+        width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.3);
+        border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.5);
+    }
+}
+
+@layer components {
+
+    /* ─── Sidebar Nav Item ─── */
+    .nav-item {
+        @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden;
+    }
+
+    .nav-item-active {
+        @apply bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30;
+    }
+
+    .nav-item-inactive {
+        @apply text-slate-400 hover:text-white hover:bg-white/5;
+    }
+
+    /* Active left-border indicator */
+    .nav-item-active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        height: 60%;
+        width: 3px;
+        background: white;
+        border-radius: 0 4px 4px 0;
+        opacity: 0.7;
+    }
+
+    /* Icon wrapper */
+    .nav-icon-wrap {
+        @apply w-7 h-7 flex items-center justify-center rounded-md flex-shrink-0 transition-all duration-200;
+    }
+
+    .nav-item-active .nav-icon-wrap {
+        @apply bg-white/20;
+    }
+
+    .nav-item-inactive .nav-icon-wrap {
+        @apply bg-white/5 group-hover:bg-white/10;
+    }
+
+    /* ─── Flash Message animations ─── */
+    .flash-enter {
+        animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .flash-dismiss {
+        animation: slideUp 0.3s ease forwards;
+    }
+
+    /* ─── Sidebar Divider label ─── */
+    .sidebar-section-label {
+        @apply text-[10px] font-semibold text-slate-500 uppercase tracking-[0.12em] px-3 pt-5 pb-1.5;
+    }
+
+    /* ─── Breadcrumb like header ─── */
+    .page-header-pill {
+        @apply text-xs px-3 py-1 rounded-full font-medium;
+    }
+}
+
+@layer utilities {
+    /* Glassmorphism sidebar bottom */
+    .glass-bottom {
+        background: linear-gradient(to top, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.6));
+        backdrop-filter: blur(8px);
+    }
+
+    /* Smooth pulse glow for active indicator dot */
+    .dot-pulse {
+        animation: pulseDot 2s ease-in-out infinite;
+    }
+
+    /* Sidebar gradient background */
+    .sidebar-bg {
+        background: linear-gradient(180deg, #0f172a 0%, #0d1526 60%, #0b1120 100%);
+    }
+
+    /* Active item shine effect */
+    .shine::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
+        border-radius: inherit;
+    }
+}
+
+/* ─── Keyframes ─── */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-12px); }
+}
+
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ─── Smooth page transition ─── */
+main {
+    animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
