@@ -14,7 +14,7 @@
     @endif
 
     @if ($flashError)
-        <div x-data="{ show: true }" x-show="show" x-transition
+        <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 6000)"
             class="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg flex items-center gap-2">
             <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd"
@@ -25,55 +25,61 @@
         </div>
     @endif
 
-    {{-- ═══ BANNER SINKRONISASI DARI PENCATATAN ═══ --}}
+    {{-- ═══ BANNER SINKRONISASI ═══ --}}
     @if ($this->hasPencatatan && ($this->canEditTab || $this->canEditDep))
-        <div class="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex items-start justify-between gap-4">
-            <div class="flex items-start gap-3">
-                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-indigo-800">Data pencatatan tersedia</p>
+                        <div class="mt-1 space-y-0.5">
+                            @foreach (['tabungan', 'deposito'] as $j)
+                                @if (isset($syncRangeInfo[$j]) && $syncRangeInfo[$j]['count'] > 0)
+                                    @php $s = $syncRangeInfo[$j]; @endphp
+                                    <p class="text-xs text-indigo-600">
+                                        <strong>{{ ucfirst($j) }}:</strong>
+                                        {{ $s['count'] }} transaksi
+                                        ({{ $s['from_display'] }} – {{ $s['to_display'] }})
+                                        · +{{ number_format((int) $s['tambahan_stok']) }} masuk
+                                        −{{ number_format((int) $s['digunakan'] + (int) $s['batal_rusak'] + (int) $s['batal_hilang']) }}
+                                        keluar
+                                    </p>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+                <button type="button" wire:click="syncFromPencatatan" wire:loading.attr="disabled"
+                    class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-semibold
+                           rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-60 flex-shrink-0">
+                    <svg wire:loading.remove wire:target="syncFromPencatatan" class="w-3.5 h-3.5" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-indigo-800">Ada data pencatatan tersedia</p>
-                    <p class="text-xs text-indigo-600 mt-0.5">
-                        @php
-                            $ag = $this->pencatatanAgregat;
-                            $tabCount = $ag['tabungan']['count'] ?? 0;
-                            $depCount = $ag['deposito']['count'] ?? 0;
-                        @endphp
-                        {{ $tabCount }} transaksi tabungan · {{ $depCount }} transaksi deposito.
-                        Sinkronkan untuk mengisi form otomatis dari data pencatatan.
-                    </p>
-                </div>
+                    <svg wire:loading wire:target="syncFromPencatatan" class="w-3.5 h-3.5 animate-spin" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                            stroke-width="4" />
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span wire:loading.remove wire:target="syncFromPencatatan">🔄 Sinkronkan</span>
+                    <span wire:loading wire:target="syncFromPencatatan">Memproses...</span>
+                </button>
             </div>
-            <button type="button" wire:click="syncFromPencatatan" wire:loading.attr="disabled"
-                class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-semibold
-                   rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-60 flex-shrink-0">
-                <svg wire:loading.remove wire:target="syncFromPencatatan" class="w-3.5 h-3.5" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <svg wire:loading wire:target="syncFromPencatatan" class="w-3.5 h-3.5 animate-spin" fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                        stroke-width="4" />
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span wire:loading.remove wire:target="syncFromPencatatan">🔄 Sinkronkan</span>
-                <span wire:loading wire:target="syncFromPencatatan">Memproses...</span>
-            </button>
         </div>
     @elseif(!$this->hasPencatatan && ($this->canEditTab || $this->canEditDep))
-        <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-3">
-            <p class="text-xs text-gray-500">
-                Belum ada pencatatan untuk periode ini. Anda bisa mengisi form secara manual atau
-                <a href="{{ route('pic.pencatatan.index') }}" class="text-indigo-600 hover:underline font-medium">
-                    tambah pencatatan
-                </a> terlebih dahulu.
-            </p>
+        <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-500">
+            Belum ada pencatatan untuk rentang periode ini. Isi form manual atau
+            <a href="{{ route('pic.pencatatan.index') }}" class="text-indigo-600 hover:underline font-medium">
+                tambah pencatatan
+            </a> terlebih dahulu.
         </div>
     @endif
 
@@ -94,9 +100,8 @@
                 </svg>
                 Tabungan
                 <span
-                    class="text-xs px-1.5 py-0.5 rounded-full font-medium
-                             {{ \App\Enums\StatusVerifikasi::from($statusTab)->badgeClass() }}">
-                    {{ \App\Enums\StatusVerifikasi::from($statusTab)->label() }}
+                    class="text-xs px-1.5 py-0.5 rounded-full font-medium {{ \App\Enums\StatusVerifikasi::from($this->statusTab)->badgeClass() }}">
+                    {{ \App\Enums\StatusVerifikasi::from($this->statusTab)->label() }}
                 </span>
             </button>
 
@@ -112,18 +117,16 @@
                 </svg>
                 Deposito
                 <span
-                    class="text-xs px-1.5 py-0.5 rounded-full font-medium
-                             {{ \App\Enums\StatusVerifikasi::from($statusDep)->badgeClass() }}">
-                    {{ \App\Enums\StatusVerifikasi::from($statusDep)->label() }}
+                    class="text-xs px-1.5 py-0.5 rounded-full font-medium {{ \App\Enums\StatusVerifikasi::from($this->statusDep)->badgeClass() }}">
+                    {{ \App\Enums\StatusVerifikasi::from($this->statusDep)->label() }}
                 </span>
             </button>
         </div>
 
-        {{-- ══════════════ TAB TABUNGAN ══════════════ --}}
+        {{-- ══════════════ TABUNGAN ══════════════ --}}
         <div x-show="tab === 'tabungan'" x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
-            {{-- Catatan Revisi --}}
             @if ($this->statusTab === 'revision_requested' && $this->catatanRevisiTab)
                 <div class="mb-4 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg">
                     <div class="flex items-start gap-2">
@@ -143,7 +146,6 @@
 
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
 
-                {{-- Header --}}
                 <div class="px-5 py-3 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-indigo-800">Pencatatan Stok Buku Tabungan</p>
@@ -170,17 +172,15 @@
                             <p class="text-xs text-gray-400 mt-0.5">Dari periode sebelumnya, tidak dapat diubah</p>
                         </div>
                         <p class="text-2xl font-bold text-gray-900 font-mono">
-                            {{ number_format($this->saldoAwalTab) }}
+                            {{ number_format((int) $this->saldoAwalTab) }}
                         </p>
                     </div>
 
                     {{-- Input Grid --}}
                     <div class="grid grid-cols-2 gap-4">
-
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                                Tambahan Stok
-                            </label>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Tambahan
+                                Stok</label>
                             <p class="text-xs text-gray-400">Buku baru yang diterima cabang</p>
                             <input type="number" wire:model.live="tambahanStokTab" min="0"
                                 {{ !$this->canEditTab ? 'disabled' : '' }}
@@ -193,9 +193,8 @@
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                                Jumlah Digunakan
-                            </label>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Jumlah
+                                Digunakan</label>
                             <p class="text-xs text-gray-400">Buku yang sudah diberikan ke nasabah</p>
                             <input type="number" wire:model.live="jumlahDigunakanTab" min="0"
                                 {{ !$this->canEditTab ? 'disabled' : '' }}
@@ -208,9 +207,8 @@
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                                Batal — Rusak/Salah Cetak
-                            </label>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Batal —
+                                Rusak/Salah Cetak</label>
                             <p class="text-xs text-gray-400">Buku yang dibatalkan karena rusak</p>
                             <input type="number" wire:model.live="jmlDibatalkanRusakTab" min="0"
                                 {{ !$this->canEditTab ? 'disabled' : '' }}
@@ -220,9 +218,8 @@
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                                Batal — Hilang
-                            </label>
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Batal —
+                                Hilang</label>
                             <p class="text-xs text-gray-400">Buku yang hilang/tidak dapat ditemukan</p>
                             <input type="number" wire:model.live="jmlDibatalkanHilangTab" min="0"
                                 {{ !$this->canEditTab ? 'disabled' : '' }}
@@ -233,42 +230,37 @@
                     </div>
 
                     {{-- Saldo Akhir --}}
+                    @php $this->saldoTab = (int)$this->saldoAkhirTab; @endphp
                     <div
-                        class="p-4 rounded-xl border-2
-                                {{ $this->saldoAkhirTab < 0 ? 'bg-red-50 border-red-300' : 'bg-emerald-50 border-emerald-300' }}">
+                        class="p-4 rounded-xl border-2 {{ $this->saldoTab < 0 ? 'bg-red-50 border-red-300' : 'bg-emerald-50 border-emerald-300' }}">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p
-                                    class="text-xs font-semibold uppercase tracking-wide
-                                          {{ $this->saldoAkhirTab < 0 ? 'text-red-600' : 'text-emerald-700' }}">
+                                    class="text-xs font-semibold uppercase tracking-wide {{ $this->saldoTab < 0 ? 'text-red-600' : 'text-emerald-700' }}">
                                     Saldo Akhir
                                 </p>
                                 <p
-                                    class="text-xs {{ $this->saldoAkhirTab < 0 ? 'text-red-500' : 'text-emerald-500' }} mt-0.5">
+                                    class="text-xs mt-0.5 {{ $this->saldoTab < 0 ? 'text-red-500' : 'text-emerald-500' }}">
                                     Dihitung otomatis dari data di atas
                                 </p>
                             </div>
                             <p
-                                class="text-3xl font-bold font-mono
-                                      {{ $this->saldoAkhirTab < 0 ? 'text-red-700' : 'text-emerald-800' }}">
-                                {{ number_format($this->saldoAkhirTab) }}
+                                class="text-3xl font-bold font-mono {{ $this->saldoTab < 0 ? 'text-red-700' : 'text-emerald-800' }}">
+                                {{ number_format($this->saldoTab) }}
                             </p>
                         </div>
-
-                        {{-- Formula --}}
                         <div
-                            class="mt-3 pt-3 border-t {{ $this->saldoAkhirTab < 0 ? 'border-red-200' : 'border-emerald-200' }}">
+                            class="mt-3 pt-3 border-t {{ $this->saldoTab < 0 ? 'border-red-200' : 'border-emerald-200' }}">
                             <p
-                                class="text-xs {{ $this->saldoAkhirTab < 0 ? 'text-red-500' : 'text-emerald-600' }} font-mono">
-                                {{ number_format($this->saldoAwalTab) }}
-                                + {{ number_format($this->tambahanStokTab) }}
-                                − {{ number_format($this->jumlahDigunakanTab) }}
-                                − {{ number_format($this->jmlDibatalkanRusakTab) }}
-                                − {{ number_format($this->jmlDibatalkanHilangTab) }}
-                                =
-                                <strong>{{ number_format($this->saldoAkhirTab) }}</strong>
+                                class="text-xs font-mono {{ $this->saldoTab < 0 ? 'text-red-500' : 'text-emerald-600' }}">
+                                {{ number_format((int) $this->saldoAwalTab) }}
+                                + {{ number_format((int) $this->tambahanStokTab) }}
+                                − {{ number_format((int) $this->jumlahDigunakanTab) }}
+                                − {{ number_format((int) $this->jmlDibatalkanRusakTab) }}
+                                − {{ number_format((int) $this->jmlDibatalkanHilangTab) }}
+                                = <strong>{{ number_format($this->saldoTab) }}</strong>
                             </p>
-                            @if ($this->saldoAkhirTab < 0)
+                            @if ($this->saldoTab < 0)
                                 <p class="text-xs text-red-600 font-semibold mt-1">
                                     ⚠ Saldo tidak boleh negatif. Periksa kembali data yang diinput.
                                 </p>
@@ -276,15 +268,12 @@
                         </div>
                     </div>
 
-                    {{-- Action Buttons --}}
+                    {{-- Buttons --}}
                     @if ($this->canEditTab)
                         <div class="flex items-center gap-3 pt-1">
-
-                            {{-- Simpan Catatan --}}
                             <button type="button" wire:click="saveDraftTabungan" wire:loading.attr="disabled"
-                                class="flex items-center gap-2 px-5 py-2.5 border-2 border-indigo-300
-                                       text-indigo-700 text-sm font-semibold rounded-lg
-                                       hover:bg-indigo-50 transition-colors disabled:opacity-60">
+                                class="flex items-center gap-2 px-5 py-2.5 border-2 border-indigo-300 text-indigo-700
+                                       text-sm font-semibold rounded-lg hover:bg-indigo-50 transition-colors disabled:opacity-60">
                                 <svg wire:loading.remove wire:target="saveDraftTabungan" class="w-4 h-4"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -301,22 +290,18 @@
                                 <span wire:loading wire:target="saveDraftTabungan">Menyimpan...</span>
                             </button>
 
-                            {{-- Submit Laporan --}}
                             <button type="button" wire:click="openSubmitModal('tabungan')"
-                                wire:loading.attr="disabled" @if ($this->saldoAkhirTab < 0) disabled @endif
-                                class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white
-                                       text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors
-                                       disabled:opacity-50 disabled:cursor-not-allowed">
+                                wire:loading.attr="disabled" @if ($this->saldoTab < 0) disabled @endif
+                                class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold
+                                       rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 Submit Laporan
                             </button>
-
                         </div>
-                        <p class="text-xs text-gray-400">
-                            Simpan catatan kapan saja. Submit hanya dilakukan saat pelaporan wajib.
+                        <p class="text-xs text-gray-400">Simpan catatan kapan saja. Submit hanya saat pelaporan wajib.
                         </p>
                     @else
                         <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
@@ -326,7 +311,8 @@
                                     clip-rule="evenodd" />
                             </svg>
                             <p class="text-xs text-gray-500">
-                                Status: <strong>{{ \App\Enums\StatusVerifikasi::from($statusTab)->label() }}</strong>
+                                Status:
+                                <strong>{{ \App\Enums\StatusVerifikasi::from($this->statusTab)->label() }}</strong>
                                 — Laporan tidak dapat diedit saat ini.
                             </p>
                         </div>
@@ -336,7 +322,7 @@
             </div>
         </div>
 
-        {{-- ══════════════ TAB DEPOSITO ══════════════ --}}
+        {{-- ══════════════ DEPOSITO ══════════════ --}}
         <div x-show="tab === 'deposito'" x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
@@ -359,7 +345,6 @@
 
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
 
-                {{-- Header --}}
                 <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-slate-700">Pencatatan Stok Buku Deposito</p>
@@ -386,13 +371,12 @@
                             <p class="text-xs text-gray-400 mt-0.5">Dari periode sebelumnya, tidak dapat diubah</p>
                         </div>
                         <p class="text-2xl font-bold text-gray-900 font-mono">
-                            {{ number_format($this->saldoAwalDep) }}
+                            {{ number_format((int) $this->saldoAwalDep) }}
                         </p>
                     </div>
 
                     {{-- Input Grid --}}
                     <div class="grid grid-cols-2 gap-4">
-
                         <div class="space-y-1.5">
                             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Tambahan
                                 Stok</label>
@@ -439,39 +423,37 @@
                     </div>
 
                     {{-- Saldo Akhir --}}
+                    @php $this->saldoDep = (int)$this->saldoAkhirDep; @endphp
                     <div
-                        class="p-4 rounded-xl border-2
-                                {{ $this->saldoAkhirDep < 0 ? 'bg-red-50 border-red-300' : 'bg-emerald-50 border-emerald-300' }}">
+                        class="p-4 rounded-xl border-2 {{ $this->saldoDep < 0 ? 'bg-red-50 border-red-300' : 'bg-emerald-50 border-emerald-300' }}">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p
-                                    class="text-xs font-semibold uppercase tracking-wide
-                                          {{ $this->saldoAkhirDep < 0 ? 'text-red-600' : 'text-emerald-700' }}">
+                                    class="text-xs font-semibold uppercase tracking-wide {{ $this->saldoDep < 0 ? 'text-red-600' : 'text-emerald-700' }}">
                                     Saldo Akhir
                                 </p>
                                 <p
-                                    class="text-xs {{ $this->saldoAkhirDep < 0 ? 'text-red-500' : 'text-emerald-500' }} mt-0.5">
+                                    class="text-xs mt-0.5 {{ $this->saldoDep < 0 ? 'text-red-500' : 'text-emerald-500' }}">
                                     Dihitung otomatis dari data di atas
                                 </p>
                             </div>
                             <p
-                                class="text-3xl font-bold font-mono
-                                      {{ $this->saldoAkhirDep < 0 ? 'text-red-700' : 'text-emerald-800' }}">
-                                {{ number_format($this->saldoAkhirDep) }}
+                                class="text-3xl font-bold font-mono {{ $this->saldoDep < 0 ? 'text-red-700' : 'text-emerald-800' }}">
+                                {{ number_format($this->saldoDep) }}
                             </p>
                         </div>
                         <div
-                            class="mt-3 pt-3 border-t {{ $this->saldoAkhirDep < 0 ? 'border-red-200' : 'border-emerald-200' }}">
+                            class="mt-3 pt-3 border-t {{ $this->saldoDep < 0 ? 'border-red-200' : 'border-emerald-200' }}">
                             <p
-                                class="text-xs {{ $this->saldoAkhirDep < 0 ? 'text-red-500' : 'text-emerald-600' }} font-mono">
-                                {{ number_format($this->saldoAwalDep) }}
-                                + {{ number_format($this->tambahanStokDep) }}
-                                − {{ number_format($this->jumlahDigunakanDep) }}
-                                − {{ number_format($this->jmlDibatalkanRusakDep) }}
-                                − {{ number_format($this->jmlDibatalkanHilangDep) }}
-                                = <strong>{{ number_format($this->saldoAkhirDep) }}</strong>
+                                class="text-xs font-mono {{ $this->saldoDep < 0 ? 'text-red-500' : 'text-emerald-600' }}">
+                                {{ number_format((int) $this->saldoAwalDep) }}
+                                + {{ number_format((int) $this->tambahanStokDep) }}
+                                − {{ number_format((int) $this->jumlahDigunakanDep) }}
+                                − {{ number_format((int) $this->jmlDibatalkanRusakDep) }}
+                                − {{ number_format((int) $this->jmlDibatalkanHilangDep) }}
+                                = <strong>{{ number_format($this->saldoDep) }}</strong>
                             </p>
-                            @if ($this->saldoAkhirDep < 0)
+                            @if ($this->saldoDep < 0)
                                 <p class="text-xs text-red-600 font-semibold mt-1">
                                     ⚠ Saldo tidak boleh negatif. Periksa kembali data yang diinput.
                                 </p>
@@ -482,11 +464,9 @@
                     {{-- Buttons --}}
                     @if ($this->canEditDep)
                         <div class="flex items-center gap-3 pt-1">
-
                             <button type="button" wire:click="saveDraftDeposito" wire:loading.attr="disabled"
-                                class="flex items-center gap-2 px-5 py-2.5 border-2 border-indigo-300
-                                       text-indigo-700 text-sm font-semibold rounded-lg
-                                       hover:bg-indigo-50 transition-colors disabled:opacity-60">
+                                class="flex items-center gap-2 px-5 py-2.5 border-2 border-indigo-300 text-indigo-700
+                                       text-sm font-semibold rounded-lg hover:bg-indigo-50 transition-colors disabled:opacity-60">
                                 <svg wire:loading.remove wire:target="saveDraftDeposito" class="w-4 h-4"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -504,20 +484,17 @@
                             </button>
 
                             <button type="button" wire:click="openSubmitModal('deposito')"
-                                wire:loading.attr="disabled" @if ($this->saldoAkhirDep < 0) disabled @endif
-                                class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white
-                                       text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors
-                                       disabled:opacity-50 disabled:cursor-not-allowed">
+                                wire:loading.attr="disabled" @if ($this->saldoDep < 0) disabled @endif
+                                class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold
+                                       rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 Submit Laporan
                             </button>
-
                         </div>
-                        <p class="text-xs text-gray-400">
-                            Simpan catatan kapan saja. Submit hanya dilakukan saat pelaporan wajib.
+                        <p class="text-xs text-gray-400">Simpan catatan kapan saja. Submit hanya saat pelaporan wajib.
                         </p>
                     @else
                         <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
@@ -527,7 +504,8 @@
                                     clip-rule="evenodd" />
                             </svg>
                             <p class="text-xs text-gray-500">
-                                Status: <strong>{{ \App\Enums\StatusVerifikasi::from($statusDep)->label() }}</strong>
+                                Status:
+                                <strong>{{ \App\Enums\StatusVerifikasi::from($this->statusDep)->label() }}</strong>
                                 — Laporan tidak dapat diedit saat ini.
                             </p>
                         </div>
@@ -537,16 +515,27 @@
             </div>
         </div>
 
-    </div>{{-- end x-data tab --}}
+    </div>{{-- end tabs --}}
 
-    {{-- ═══════════════ CUSTOM SUBMIT MODAL ═══════════════ --}}
+
+    {{-- ═══════════ CUSTOM SUBMIT MODAL ═══════════ --}}
     @if ($this->showSubmitModal)
+        @php
+            $this->isTab = $this->pendingSubmitJenis === 'tabungan';
+            $this->saldoAwal = $this->isTab ? (int) $this->saldoAwalTab : (int) $this->saldoAwalDep;
+            $this->tambahan = $this->isTab ? (int) $this->tambahanStokTab : (int) $this->tambahanStokDep;
+            $this->digunakan = $this->isTab ? (int) $this->jumlahDigunakanTab : (int) $this->jumlahDigunakanDep;
+            $this->batalRusak = $this->isTab ? (int) $this->jmlDibatalkanRusakTab : (int) $this->jmlDibatalkanRusakDep;
+            $this->batalHilang = $this->isTab
+                ? (int) $this->jmlDibatalkanHilangTab
+                : (int) $this->jmlDibatalkanHilangDep;
+            $this->saldoFinal = $this->isTab ? (int) $this->saldoAkhirTab : (int) $this->saldoAkhirDep;
+        @endphp
+
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5);"
             x-data x-on:keydown.escape.window="$wire.closeSubmitModal()">
 
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" @click.stop
-                x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" @click.stop>
 
                 {{-- Modal Header --}}
                 <div class="px-6 py-5 border-b border-gray-100">
@@ -562,61 +551,21 @@
                         <div>
                             <h3 class="font-semibold text-gray-900">
                                 Konfirmasi Submit Laporan
-                                {{ $this->pendingSubmitJenis === 'tabungan' ? 'Tabungan' : 'Deposito' }}
+                                {{ $this->isTab ? 'Tabungan' : 'Deposito' }}
                             </h3>
-                            <p class="text-xs text-gray-500 mt-0.5">{{ $periode->nama_periode }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $this->periode->nama_periode }}</p>
                         </div>
                     </div>
                 </div>
 
-                {{-- Modal Body: Ringkasan Data --}}
+                {{-- Ringkasan --}}
                 <div class="px-6 py-4">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                         Ringkasan Data yang Akan Disubmit
                     </p>
 
-                    @if ($this->pendingSubmitJenis === 'tabungan')
-                        @php
-                            $rows = [
-                                ['label' => 'Saldo Awal', 'val' => $this->saldoAwalTab, 'type' => 'neutral'],
-                                ['label' => 'Tambahan Stok', 'val' => $this->tambahanStokTab, 'type' => 'plus'],
-                                ['label' => 'Jumlah Digunakan', 'val' => $this->jumlahDigunakanTab, 'type' => 'minus'],
-                                [
-                                    'label' => 'Batal (rusak/salah)',
-                                    'val' => $this->jmlDibatalkanRusakTab,
-                                    'type' => 'minus',
-                                ],
-                                [
-                                    'label' => 'Batal (hilang)',
-                                    'val' => $this->jmlDibatalkanHilangTab,
-                                    'type' => 'minus',
-                                ],
-                            ];
-                            $this->saldoFinal = $this->saldoAkhirTab;
-                        @endphp
-                    @else
-                        @php
-                            $rows = [
-                                ['label' => 'Saldo Awal', 'val' => $this->saldoAwalDep, 'type' => 'neutral'],
-                                ['label' => 'Tambahan Stok', 'val' => $this->tambahanStokDep, 'type' => 'plus'],
-                                ['label' => 'Jumlah Digunakan', 'val' => $this->jumlahDigunakanDep, 'type' => 'minus'],
-                                [
-                                    'label' => 'Batal (rusak/salah)',
-                                    'val' => $this->jmlDibatalkanRusakDep,
-                                    'type' => 'minus',
-                                ],
-                                [
-                                    'label' => 'Batal (hilang)',
-                                    'val' => $this->jmlDibatalkanHilangDep,
-                                    'type' => 'minus',
-                                ],
-                            ];
-                            $this->saldoFinal = $this->saldoAkhirDep;
-                        @endphp
-                    @endif
-
                     <div class="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
-                        @foreach ($rows as $row)
+                        @foreach ([['label' => 'Saldo Awal', 'val' => $this->saldoAwal, 'type' => 'neutral'], ['label' => 'Tambahan Stok', 'val' => $this->tambahan, 'type' => 'plus'], ['label' => 'Jumlah Digunakan', 'val' => $this->digunakan, 'type' => 'minus'], ['label' => 'Batal (rusak/salah)', 'val' => $this->batalRusak, 'type' => 'minus'], ['label' => 'Batal (hilang)', 'val' => $this->batalHilang, 'type' => 'minus']] as $row)
                             <div
                                 class="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 last:border-0">
                                 <span class="text-sm text-gray-600">{{ $row['label'] }}</span>
@@ -633,7 +582,6 @@
                             </div>
                         @endforeach
 
-                        {{-- Saldo Akhir --}}
                         <div
                             class="flex items-center justify-between px-4 py-3
                                     {{ $this->saldoFinal >= 0 ? 'bg-emerald-50' : 'bg-red-50' }}">
@@ -648,7 +596,6 @@
                         </div>
                     </div>
 
-                    {{-- Warning --}}
                     <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
                         <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor"
                             viewBox="0 0 20 20">
@@ -666,14 +613,12 @@
                 {{-- Modal Footer --}}
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                     <button type="button" wire:click="closeSubmitModal"
-                        class="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium
-                               rounded-lg hover:bg-gray-100 transition-colors">
+                        class="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors">
                         Batal, Cek Lagi
                     </button>
                     <button type="button" wire:click="confirmSubmit" wire:loading.attr="disabled"
-                        class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white
-                               text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors
-                               disabled:opacity-60">
+                        class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold
+                               rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-60">
                         <svg wire:loading.remove wire:target="confirmSubmit" class="w-4 h-4" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

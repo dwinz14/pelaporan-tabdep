@@ -4,25 +4,30 @@ namespace App\Livewire\Pic;
 
 use App\Enums\JenisLaporan;
 use App\Enums\StatusVerifikasi;
+use App\Enums\TipeTransaksi;
 use App\Models\Laporan;
 use App\Models\PeriodeLaporan;
+use App\Models\PencatatanLaporan;
 use App\Services\LaporanService;
+use App\Services\PencatatanLaporanService;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
-use App\Models\PencatatanLaporan;
-use App\Services\PencatatanLaporanService;
+use Carbon\Carbon;
 
 class FormLaporan extends Component
 {
     public PeriodeLaporan $periode;
 
+    public array  $syncRangeInfo  = [];
+    public bool   $hasPencatatan  = false;
+
     // ─── Tabungan ─────────────────────────────────────────────
     public ?int    $laporanTabId           = null;
     public int     $saldoAwalTab           = 0;
-    public int     $tambahanStokTab        = 0;
-    public int     $jumlahDigunakanTab     = 0;
-    public int     $jmlDibatalkanRusakTab  = 0;
-    public int     $jmlDibatalkanHilangTab = 0;
+    public         $tambahanStokTab        = 0;
+    public         $jumlahDigunakanTab     = 0;
+    public         $jmlDibatalkanRusakTab  = 0;
+    public         $jmlDibatalkanHilangTab = 0;
     public string  $statusTab              = 'draft';
     public ?string $catatanRevisiTab       = null;
     public ?string $lastSavedTab           = null;
@@ -30,10 +35,10 @@ class FormLaporan extends Component
     // ─── Deposito ─────────────────────────────────────────────
     public ?int    $laporanDepId            = null;
     public int     $saldoAwalDep            = 0;
-    public int     $tambahanStokDep         = 0;
-    public int     $jumlahDigunakanDep      = 0;
-    public int     $jmlDibatalkanRusakDep   = 0;
-    public int     $jmlDibatalkanHilangDep  = 0;
+    public         $tambahanStokDep         = 0;
+    public         $jumlahDigunakanDep      = 0;
+    public         $jmlDibatalkanRusakDep   = 0;
+    public         $jmlDibatalkanHilangDep  = 0;
     public string  $statusDep              = 'draft';
     public ?string $catatanRevisiDep       = null;
     public ?string $lastSavedDep           = null;
@@ -55,6 +60,42 @@ class FormLaporan extends Component
 
         $this->loadLaporan($cabangId, JenisLaporan::Tabungan);
         $this->loadLaporan($cabangId, JenisLaporan::Deposito);
+
+        $this->computeSyncInfo();
+    }
+
+    private function computeSyncInfo(): void
+    {
+        $svc      = app(PencatatanLaporanService::class);
+        $cabangId = auth()->user()->id_cabang;
+        $info     = [];
+        $ada      = false;
+
+        foreach (JenisLaporan::cases() as $jenis) {
+            $range       = $svc->getSyncRange($this->periode, $cabangId, $jenis);
+            $pencatatans = PencatatanLaporan::where('id_cabang', $cabangId)
+                ->where('jenis', $jenis)
+                ->whereBetween('tanggal_catat', [$range['from'], $range['to']])
+                ->get();
+
+            $count = $pencatatans->count();
+            if ($count > 0) $ada = true;
+
+            $info[$jenis->value] = [
+                'count'          => $count,
+                'tambahan_stok'  => $pencatatans->filter(fn($p) => $p->tipe_transaksi === TipeTransaksi::TambahanStok)->sum('jumlah'),
+                'digunakan'      => $pencatatans->filter(fn($p) => $p->tipe_transaksi === TipeTransaksi::Digunakan)->sum('jumlah'),
+                'batal_rusak'    => $pencatatans->filter(fn($p) => $p->tipe_transaksi === TipeTransaksi::DibatalkanRusak)->sum('jumlah'),
+                'batal_hilang'   => $pencatatans->filter(fn($p) => $p->tipe_transaksi === TipeTransaksi::DibatalkanHilang)->sum('jumlah'),
+                'from_display'   => $range['from_display'],
+                'to_display'     => $range['to_display'],
+                'from'           => $range['from'],
+                'to'             => $range['to'],
+            ];
+        }
+
+        $this->syncRangeInfo = $info;
+        $this->hasPencatatan = $ada;
     }
 
     private function loadLaporan(int $cabangId, JenisLaporan $jenis): void
@@ -96,21 +137,21 @@ class FormLaporan extends Component
     #[Computed(cache: false)]
     public function saldoAkhirTab(): int
     {
-        return $this->saldoAwalTab
-            + $this->tambahanStokTab
-            - $this->jumlahDigunakanTab
-            - $this->jmlDibatalkanRusakTab
-            - $this->jmlDibatalkanHilangTab;
+        return (int)$this->saldoAwalTab
+            + (int)$this->tambahanStokTab
+            - (int)$this->jumlahDigunakanTab
+            - (int)$this->jmlDibatalkanRusakTab
+            - (int)$this->jmlDibatalkanHilangTab;
     }
 
     #[Computed(cache: false)]
     public function saldoAkhirDep(): int
     {
-        return $this->saldoAwalDep
-            + $this->tambahanStokDep
-            - $this->jumlahDigunakanDep
-            - $this->jmlDibatalkanRusakDep
-            - $this->jmlDibatalkanHilangDep;
+        return (int)$this->saldoAwalDep
+            + (int)$this->tambahanStokDep
+            - (int)$this->jumlahDigunakanDep
+            - (int)$this->jmlDibatalkanRusakDep
+            - (int)$this->jmlDibatalkanHilangDep;
     }
 
     #[Computed(cache: false)]
@@ -127,53 +168,34 @@ class FormLaporan extends Component
             && StatusVerifikasi::from($this->statusDep)->canEdit();
     }
 
-    #[Computed(cache: false)]
-    public function hasPencatatan(): bool
-    {
-        return PencatatanLaporan::where('id_cabang', auth()->user()->id_cabang)
-            ->where('id_periode', $this->periode->id)
-            ->exists();
-    }
-
-    #[Computed(cache: false)]
-    public function pencatatanAgregat(): array
-    {
-        if (! $this->hasPencatatan) return [];
-
-        return app(PencatatanLaporanService::class)
-            ->getAgregat($this->periode->id, auth()->user()->id_cabang);
-    }
 
     // sync
     public function syncFromPencatatan(): void
     {
         $this->resetFlash();
 
-        if (! $this->hasPencatatan) {
-            $this->flashError = 'Tidak ada pencatatan untuk periode ini.';
-            return;
+        if ($this->canEditTab && isset($this->syncRangeInfo['tabungan'])) {
+            $ag = $this->syncRangeInfo['tabungan'];
+            $this->tambahanStokTab        = (int)$ag['tambahan_stok'];
+            $this->jumlahDigunakanTab     = (int)$ag['digunakan'];
+            $this->jmlDibatalkanRusakTab  = (int)$ag['batal_rusak'];
+            $this->jmlDibatalkanHilangTab = (int)$ag['batal_hilang'];
         }
 
-        $ag = app(PencatatanLaporanService::class)
-            ->getAgregat($this->periode->id, auth()->user()->id_cabang);
-
-        // Sync Tabungan (hanya jika masih bisa diedit)
-        if ($this->canEditTab) {
-            $this->tambahanStokTab        = $ag['tabungan']['tambahan_stok']      ?? 0;
-            $this->jumlahDigunakanTab     = $ag['tabungan']['digunakan']           ?? 0;
-            $this->jmlDibatalkanRusakTab  = $ag['tabungan']['dibatalkan_rusak']    ?? 0;
-            $this->jmlDibatalkanHilangTab = $ag['tabungan']['dibatalkan_hilang']   ?? 0;
+        if ($this->canEditDep && isset($this->syncRangeInfo['deposito'])) {
+            $ag = $this->syncRangeInfo['deposito'];
+            $this->tambahanStokDep        = (int)$ag['tambahan_stok'];
+            $this->jumlahDigunakanDep     = (int)$ag['digunakan'];
+            $this->jmlDibatalkanRusakDep  = (int)$ag['batal_rusak'];
+            $this->jmlDibatalkanHilangDep = (int)$ag['batal_hilang'];
         }
 
-        // Sync Deposito (hanya jika masih bisa diedit)
-        if ($this->canEditDep) {
-            $this->tambahanStokDep        = $ag['deposito']['tambahan_stok']      ?? 0;
-            $this->jumlahDigunakanDep     = $ag['deposito']['digunakan']           ?? 0;
-            $this->jmlDibatalkanRusakDep  = $ag['deposito']['dibatalkan_rusak']    ?? 0;
-            $this->jmlDibatalkanHilangDep = $ag['deposito']['dibatalkan_hilang']   ?? 0;
-        }
+        $ref   = $this->syncRangeInfo['tabungan'] ?? $this->syncRangeInfo['deposito'] ?? null;
+        $range = $ref ? "({$ref['from_display']} – {$ref['to_display']})" : '';
 
-        $this->flashSuccess = 'Form berhasil disinkronkan dari pencatatan. Periksa data lalu simpan atau submit.';
+        $this->flashSuccess = "Form berhasil disinkronkan dari data pencatatan {$range}. Data masih bisa diubah sebelum disimpan.";
+
+        $this->computeSyncInfo();
     }
 
     // ─── Save Draft ───────────────────────────────────────────
@@ -254,6 +276,48 @@ class FormLaporan extends Component
         $this->pendingSubmitJenis = '';
     }
 
+    // ─── Updated Hooks (coerce empty → 0) ────────────────────
+
+    public function updatedTambahanStokTab($v): void
+    {
+        $this->tambahanStokTab = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
+    public function updatedJumlahDigunakanTab($v): void
+    {
+        $this->jumlahDigunakanTab = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
+    public function updatedJmlDibatalkanRusakTab($v): void
+    {
+        $this->jmlDibatalkanRusakTab = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
+    public function updatedJmlDibatalkanHilangTab($v): void
+    {
+        $this->jmlDibatalkanHilangTab = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
+    public function updatedTambahanStokDep($v): void
+    {
+        $this->tambahanStokDep = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
+    public function updatedJumlahDigunakanDep($v): void
+    {
+        $this->jumlahDigunakanDep = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
+    public function updatedJmlDibatalkanRusakDep($v): void
+    {
+        $this->jmlDibatalkanRusakDep = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
+    public function updatedJmlDibatalkanHilangDep($v): void
+    {
+        $this->jmlDibatalkanHilangDep = ($v === '' || $v === null) ? 0 : (int)$v;
+    }
+
     // ─── Internal Submit ──────────────────────────────────────
 
     private function doSubmitTabungan(): void
@@ -315,20 +379,20 @@ class FormLaporan extends Component
     private function payloadTab(): array
     {
         return [
-            'tambahan_stok'         => $this->tambahanStokTab,
-            'jumlah_digunakan'      => $this->jumlahDigunakanTab,
-            'jml_dibatalkan_rusak'  => $this->jmlDibatalkanRusakTab,
-            'jml_dibatalkan_hilang' => $this->jmlDibatalkanHilangTab,
+            'tambahan_stok'         => (int)$this->tambahanStokTab,
+            'jumlah_digunakan'      => (int)$this->jumlahDigunakanTab,
+            'jml_dibatalkan_rusak'  => (int)$this->jmlDibatalkanRusakTab,
+            'jml_dibatalkan_hilang' => (int)$this->jmlDibatalkanHilangTab,
         ];
     }
 
     private function payloadDep(): array
     {
         return [
-            'tambahan_stok'         => $this->tambahanStokDep,
-            'jumlah_digunakan'      => $this->jumlahDigunakanDep,
-            'jml_dibatalkan_rusak'  => $this->jmlDibatalkanRusakDep,
-            'jml_dibatalkan_hilang' => $this->jmlDibatalkanHilangDep,
+            'tambahan_stok'         => (int)$this->tambahanStokDep,
+            'jumlah_digunakan'      => (int)$this->jumlahDigunakanDep,
+            'jml_dibatalkan_rusak'  => (int)$this->jmlDibatalkanRusakDep,
+            'jml_dibatalkan_hilang' => (int)$this->jmlDibatalkanHilangDep,
         ];
     }
 

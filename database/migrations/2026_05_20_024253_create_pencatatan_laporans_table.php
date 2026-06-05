@@ -13,24 +13,47 @@ return new class extends Migration
     {
         Schema::create('pencatatan_laporans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_cabang')->constrained('cabangs')->cascadeOnDelete();
-            $table->foreignId('id_periode')->constrained('periode_laporans')->cascadeOnDelete();
-            $table->enum('jenis', ['tabungan', 'deposito']);
+
+            $table->foreignId('id_cabang')
+                ->constrained('cabangs')
+                ->cascadeOnDelete();
+
+            $table->enum('jenis', [
+                'tabungan',
+                'deposito'
+            ]);
+
             $table->enum('tipe_transaksi', [
                 'tambahan_stok',
                 'digunakan',
                 'dibatalkan_rusak',
                 'dibatalkan_hilang',
             ]);
+
             $table->unsignedInteger('jumlah')->default(1);
-            $table->string('keterangan', 255)->nullable()->comment('Catatan opsional, misal nama nasabah');
+
+            $table->string('keterangan', 255)
+                ->nullable()
+                ->comment('Catatan opsional, misal nama nasabah');
+
             $table->date('tanggal_catat');
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+
+            $table->foreignId('created_by')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
             $table->timestamps();
 
-            // Index untuk query yang sering dipakai
-            $table->index(['id_cabang', 'id_periode', 'jenis'], 'idx_pencatatan_cabang_periode_jenis');
-            $table->index('tanggal_catat', 'idx_pencatatan_tanggal');
+            // Index untuk query log per cabang + jenis + tanggal
+            $table->index(
+                ['id_cabang', 'jenis', 'tanggal_catat'],
+                'idx_pencatatan_cabang_jenis_tanggal'
+            );
+
+            $table->index(
+                'tanggal_catat',
+                'idx_pencatatan_tanggal'
+            );
         });
     }
 

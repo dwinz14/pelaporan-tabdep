@@ -13,7 +13,6 @@ class PencatatanLaporan extends Model
 
     protected $fillable = [
         'id_cabang',
-        'id_periode',
         'jenis',
         'tipe_transaksi',
         'jumlah',
@@ -32,16 +31,9 @@ class PencatatanLaporan extends Model
         ];
     }
 
-    // ─── Relations ────────────────────────────────────────────
-
     public function cabang(): BelongsTo
     {
         return $this->belongsTo(Cabang::class, 'id_cabang');
-    }
-
-    public function periode(): BelongsTo
-    {
-        return $this->belongsTo(PeriodeLaporan::class, 'id_periode');
     }
 
     public function createdBy(): BelongsTo

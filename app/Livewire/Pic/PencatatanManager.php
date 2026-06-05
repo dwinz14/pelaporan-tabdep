@@ -4,18 +4,19 @@ namespace App\Livewire\Pic;
 
 use App\Enums\JenisLaporan;
 use App\Enums\TipeTransaksi;
-use App\Models\Laporan;
 use App\Models\PencatatanLaporan;
-use App\Models\PeriodeLaporan;
 use App\Services\PencatatanLaporanService;
+use Carbon\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class PencatatanManager extends Component
 {
-    // ─── Filter ───────────────────────────────────────────────
-    public ?int   $filterPeriodeId = null;
-    public string $filterJenis     = '';
+    // ─── Filter Log ───────────────────────────────────────────
+    public string $filterJenis  = '';
+    public string $filterTipe   = '';
+    public string $filterDari   = '';
+    public string $filterSampai = '';
 
     // ─── Form Modal ───────────────────────────────────────────
     public bool   $showFormModal   = false;
@@ -39,100 +40,91 @@ class PencatatanManager extends Component
 
     public function mount(): void
     {
-        $this->formTanggal = now()->format('Y-m-d');
-
-        // Default ke periode aktif
-        $aktif = PeriodeLaporan::where('is_current', true)->first();
-        if ($aktif) {
-            $this->filterPeriodeId = $aktif->id;
-            return;
-        }
-
-        // Fallback ke periode terbaru yang ada laporan untuk cabang ini
-        $latest = PeriodeLaporan::whereHas(
-            'laporans',
-            fn($q) =>
-            $q->where('id_cabang', auth()->user()->id_cabang)
-        )->orderBy('tanggal_akhir', 'desc')->first();
-
-        if ($latest) {
-            $this->filterPeriodeId = $latest->id;
-        }
+        $this->filterDari   = now()->subDays(30)->format('Y-m-d');
+        $this->filterSampai = now()->format('Y-m-d');
+        $this->formTanggal  = now()->format('Y-m-d');
     }
 
     // ─── Computed ─────────────────────────────────────────────
 
     #[Computed(cache: false)]
-    public function availablePeriodes()
+    public function stokTerkini(): array
     {
-        return PeriodeLaporan::whereHas(
-            'laporans',
-            fn($q) =>
-            $q->where('id_cabang', auth()->user()->id_cabang)
-        )
-            ->orderBy('tanggal_akhir', 'desc')
-            ->get(['id', 'nama_periode', 'tanggal_akhir', 'is_current', 'status_operasional']);
-    }
-
-    #[Computed(cache: false)]
-    public function pencatatanList()
-    {
-        if (! $this->filterPeriodeId) return collect();
-
-        return PencatatanLaporan::where('id_cabang', auth()->user()->id_cabang)
-            ->where('id_periode', $this->filterPeriodeId)
-            ->when($this->filterJenis, fn($q) => $q->where('jenis', $this->filterJenis))
-            ->orderBy('tanggal_catat', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->get();
-    }
-
-    #[Computed(cache: false)]
-    public function agregat(): array
-    {
-        if (! $this->filterPeriodeId) return [];
-
         return app(PencatatanLaporanService::class)
-            ->getAgregat($this->filterPeriodeId, auth()->user()->id_cabang);
+            ->getStokTerkini(auth()->user()->id_cabang);
     }
 
     #[Computed(cache: false)]
-    public function laporanStatus(): array
+    public function lockDates(): array
     {
-        if (! $this->filterPeriodeId) {
-            return ['tabungan' => null, 'deposito' => null];
-        }
-
-        $laporans = Laporan::with('periode')
-            ->where('id_periode', $this->filterPeriodeId)
-            ->where('id_cabang', auth()->user()->id_cabang)
-            ->get()
-            ->keyBy(fn($l) => $l->jenis->value);
+        $svc = app(PencatatanLaporanService::class);
+        $id  = auth()->user()->id_cabang;
 
         return [
-            'tabungan' => $laporans->get('tabungan'),
-            'deposito' => $laporans->get('deposito'),
+            'tabungan' => $svc->getLockDate($id, JenisLaporan::Tabungan)?->format('Y-m-d'),
+            'deposito' => $svc->getLockDate($id, JenisLaporan::Deposito)?->format('Y-m-d'),
         ];
     }
 
     #[Computed(cache: false)]
-    public function tabCanEdit(): bool
+    public function logList()
     {
-        $lap = $this->laporanStatus['tabungan'];
-        return $lap && $lap->status_verifikasi->canEdit() && ! $lap->periode->isLocked();
+        return app(PencatatanLaporanService::class)->getLog(
+            auth()->user()->id_cabang,
+            [
+                'jenis'   => $this->filterJenis  ?: null,
+                'tipe'    => $this->filterTipe   ?: null,
+                'dari'    => $this->filterDari,
+                'sampai'  => $this->filterSampai,
+            ]
+        );
     }
 
     #[Computed(cache: false)]
-    public function depCanEdit(): bool
+    public function formMinDate(): ?string
     {
-        $lap = $this->laporanStatus['deposito'];
-        return $lap && $lap->status_verifikasi->canEdit() && ! $lap->periode->isLocked();
+        if (! $this->formJenis) return null;
+
+        $lockDate = $this->lockDates[$this->formJenis] ?? null;
+
+        return $lockDate
+            ? Carbon::parse($lockDate)->addDay()->format('Y-m-d')
+            : null;
     }
 
     #[Computed(cache: false)]
-    public function canAddNew(): bool
+    public function formDateLocked(): bool
     {
-        return $this->tabCanEdit || $this->depCanEdit;
+        if (! $this->formTanggal || ! $this->formJenis) return false;
+
+        $lockDate = $this->lockDates[$this->formJenis] ?? null;
+
+        if (! $lockDate) return false;
+
+        return $this->formTanggal <= $lockDate;
+    }
+
+    #[Computed(cache: false)]
+    public function formDateLockMsg(): ?string
+    {
+        if (! $this->formDateLocked) return null;
+
+        $lockDate = $this->lockDates[$this->formJenis];
+        $jenis    = JenisLaporan::from($this->formJenis)->label();
+
+        return "Tanggal " . Carbon::parse($this->formTanggal)->format('d/m/Y')
+            . " sudah terkunci. Laporan {$jenis} s/d "
+            . Carbon::parse($lockDate)->format('d/m/Y') . " sudah disubmit.";
+    }
+
+    // ─── Filter Actions ───────────────────────────────────────
+
+    public function resetFilter(): void
+    {
+        $this->filterJenis  = '';
+        $this->filterTipe   = '';
+        $this->filterDari   = now()->subDays(30)->format('Y-m-d');
+        $this->filterSampai = now()->format('Y-m-d');
     }
 
     // ─── Form Modal ───────────────────────────────────────────
@@ -140,15 +132,9 @@ class PencatatanManager extends Component
     public function openCreateForm(): void
     {
         $this->resetFlash();
-
-        if (! $this->canAddNew) {
-            $this->flashError = 'Laporan periode ini sudah disubmit. Tidak bisa menambah pencatatan.';
-            return;
-        }
-
         $this->editingId      = null;
         $this->formTanggal    = now()->format('Y-m-d');
-        $this->formJenis      = $this->tabCanEdit ? 'tabungan' : 'deposito';
+        $this->formJenis      = 'tabungan';
         $this->formTipe       = 'digunakan';
         $this->formJumlah     = 1;
         $this->formKeterangan = '';
@@ -161,6 +147,13 @@ class PencatatanManager extends Component
 
         $p = PencatatanLaporan::where('id_cabang', auth()->user()->id_cabang)
             ->findOrFail($id);
+
+        // Cek apakah masih bisa diedit
+        $lockDate = $this->lockDates[$p->jenis->value] ?? null;
+        if ($lockDate && $p->tanggal_catat->format('Y-m-d') <= $lockDate) {
+            $this->flashError = 'Pencatatan ini tidak bisa diedit karena sudah masuk periode yang disubmit.';
+            return;
+        }
 
         $this->editingId      = $id;
         $this->formTanggal    = $p->tanggal_catat->format('Y-m-d');
@@ -190,19 +183,22 @@ class PencatatanManager extends Component
             'formKeterangan' => ['nullable', 'string', 'max:255'],
         ], [
             'formTanggal.required'        => 'Tanggal wajib diisi.',
-            'formTanggal.before_or_equal' => 'Tanggal tidak boleh lebih dari hari ini.',
+            'formTanggal.before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
             'formJenis.required'          => 'Jenis buku wajib dipilih.',
             'formTipe.required'           => 'Tipe transaksi wajib dipilih.',
             'formJumlah.required'         => 'Jumlah wajib diisi.',
             'formJumlah.min'              => 'Jumlah minimal 1.',
-            'formJumlah.max'              => 'Jumlah terlalu besar.',
         ]);
 
-        $service = app(PencatatanLaporanService::class);
+        // Cek lock date
+        if ($this->formDateLocked) {
+            $this->flashError = $this->formDateLockMsg;
+            return;
+        }
 
+        $svc  = app(PencatatanLaporanService::class);
         $data = [
             'id_cabang'      => auth()->user()->id_cabang,
-            'id_periode'     => $this->filterPeriodeId,
             'jenis'          => $this->formJenis,
             'tipe_transaksi' => $this->formTipe,
             'jumlah'         => $this->formJumlah,
@@ -214,10 +210,10 @@ class PencatatanManager extends Component
         if ($this->editingId) {
             $p = PencatatanLaporan::where('id_cabang', auth()->user()->id_cabang)
                 ->findOrFail($this->editingId);
-            $service->update($p, $data);
+            $svc->update($p, $data);
             $this->flashSuccess = 'Pencatatan berhasil diperbarui.';
         } else {
-            $service->create($data);
+            $svc->create($data);
             $this->flashSuccess = 'Pencatatan berhasil ditambahkan.';
         }
 
@@ -232,10 +228,17 @@ class PencatatanManager extends Component
         $p = PencatatanLaporan::where('id_cabang', auth()->user()->id_cabang)
             ->findOrFail($id);
 
+        // Cek apakah masih bisa dihapus
+        $lockDate = $this->lockDates[$p->jenis->value] ?? null;
+        if ($lockDate && $p->tanggal_catat->format('Y-m-d') <= $lockDate) {
+            $this->flashError = 'Pencatatan ini tidak bisa dihapus karena sudah masuk periode yang disubmit.';
+            return;
+        }
+
         $this->deletingId    = $id;
-        $this->deletingLabel = $p->tipe_transaksi->labelShort()
-            . ' ' . $p->jenis->label()
-            . ' — ' . number_format($p->jumlah) . ' buku'
+        $this->deletingLabel = $p->jenis->label() . ' — '
+            . $p->tipe_transaksi->labelShort() . ' '
+            . number_format($p->jumlah) . ' buku'
             . ' (' . $p->tanggal_catat->format('d/m/Y') . ')';
 
         $this->showDeleteModal = true;
