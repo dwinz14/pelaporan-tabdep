@@ -25,66 +25,215 @@
         </div>
     @endif
 
-    {{-- ═══ STOK TERKINI ═══ --}}
-    <div class="grid grid-cols-2 gap-4 mb-5">
+    {{-- ═══ STOK REAL-TIME MONITORING ═══ --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         @foreach (['tabungan' => 'Tabungan', 'deposito' => 'Deposito'] as $jenisKey => $jenisLabel)
-            @php $stok = $stokTerkini[$jenisKey] ?? null; @endphp
+            @php $rt = $this->stokRealtime[$jenisKey] ?? null; @endphp
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                {{-- Header --}}
+
+                {{-- ── Header ── --}}
                 <div
                     class="px-4 py-3 {{ $jenisKey === 'tabungan' ? 'bg-indigo-600' : 'bg-slate-700' }} flex items-center justify-between">
-                    <p class="text-xs font-semibold text-white uppercase tracking-wide">{{ $jenisLabel }}</p>
-                    @if ($stok && $stok['lock_date'])
+                    <div class="flex items-center gap-2">
+                        <span class="flex items-center justify-center w-6 h-6 rounded-full bg-white/15">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </span>
+                        <p class="text-xs font-semibold text-white uppercase tracking-wide">{{ $jenisLabel }}</p>
+                    </div>
+                    @if ($rt && $rt['lock_date'])
                         <span class="flex items-center gap-1 text-xs text-white/70">
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
                                     clip-rule="evenodd" />
                             </svg>
-                            Terkunci s/d {{ $stok['lock_date'] }}
+                            Terkunci s/d {{ $rt['lock_date'] }}
                         </span>
                     @else
                         <span class="text-xs text-white/60">Belum ada periode disubmit</span>
                     @endif
                 </div>
 
-                @if ($stok)
-                    {{-- Estimasi Terkini --}}
-                    <div class="px-4 pt-4 pb-2">
-                        <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Estimasi Stok Terkini</p>
-                        <p class="text-3xl font-bold text-gray-900 font-mono mt-1">
-                            {{ number_format($stok['terkini']) }}
-                        </p>
+                @if ($rt)
+                    {{-- ── Hero: Stok Real-Time ── --}}
+                    <div class="px-4 pt-5 pb-3">
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wide font-medium flex items-center gap-1.5">
+                                    <span class="relative flex h-2 w-2">
+                                        <span
+                                            class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $jenisKey === 'tabungan' ? 'bg-indigo-400' : 'bg-slate-400' }} opacity-75"></span>
+                                        <span
+                                            class="relative inline-flex rounded-full h-2 w-2 {{ $jenisKey === 'tabungan' ? 'bg-indigo-500' : 'bg-slate-500' }}"></span>
+                                    </span>
+                                    Stok Real-Time Sekarang
+                                </p>
+                                <p class="text-4xl font-bold text-gray-900 font-mono mt-1.5 tracking-tight">
+                                    {{ number_format($rt['stok_sekarang']) }}
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Basis: Saldo per {{ $rt['saldo_at'] ?? '—' }}
+                                    <span class="text-gray-300">({{ $rt['saldo_label'] }})</span>
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-300 font-medium">Saldo Awal</p>
+                                <p class="text-lg font-bold font-mono text-gray-500">
+                                    {{ number_format($rt['saldo_base']) }}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    {{-- Breakdown --}}
-                    <div class="px-4 pb-4 space-y-1.5">
-                        <div class="flex items-center justify-between text-xs py-1 border-t border-gray-100">
-                            <span class="text-gray-400">
-                                Saldo per {{ $stok['saldo_at'] ?? '—' }}
-                                <span class="text-gray-300">({{ $stok['saldo_label'] }})</span>
-                            </span>
-                            <span
-                                class="font-mono font-semibold text-gray-700">{{ number_format($stok['saldo_base']) }}</span>
+                    {{-- ── Masuk / Keluar Total (sejak lock) ── --}}
+                    <div class="px-4 pb-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            {{-- Masuk --}}
+                            <div class="bg-emerald-50 rounded-lg px-3 py-2.5 border border-emerald-100">
+                                <p class="text-xs text-emerald-600 font-medium mb-0.5">
+                                    ↑ Masuk sejak {{ $rt['since'] }}
+                                </p>
+                                <p class="text-xl font-bold font-mono text-emerald-700">
+                                    +{{ number_format($rt['masuk_total']) }}
+                                </p>
+                            </div>
+                            {{-- Keluar --}}
+                            <div class="bg-red-50 rounded-lg px-3 py-2.5 border border-red-100">
+                                <p class="text-xs text-red-500 font-medium mb-0.5">
+                                    ↓ Keluar sejak {{ $rt['since'] }}
+                                </p>
+                                <p class="text-xl font-bold font-mono text-red-600">
+                                    −{{ number_format($rt['keluar_total']) }}
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="text-gray-400">+ Masuk sejak {{ $stok['since'] }}</span>
-                            <span
-                                class="font-mono font-semibold text-emerald-600">+{{ number_format($stok['masuk']) }}</span>
-                        </div>
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="text-gray-400">− Keluar sejak {{ $stok['since'] }}</span>
-                            <span
-                                class="font-mono font-semibold text-red-500">−{{ number_format($stok['keluar']) }}</span>
-                        </div>
-                        @if ($stok['pencatatan_count'] > 0)
-                            <p class="text-xs text-gray-300 pt-1">
-                                dari {{ $stok['pencatatan_count'] }} pencatatan belum lapor
-                            </p>
+
+                        {{-- Detail breakdown keluar --}}
+                        @if ($rt['keluar_total'] > 0)
+                            <div class="mt-2 flex items-center gap-3 text-xs text-gray-400 pl-1">
+                                <span>Detail keluar:</span>
+                                @if ($rt['detail_keluar']['digunakan'] > 0)
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                        Digunakan {{ number_format($rt['detail_keluar']['digunakan']) }}
+                                    </span>
+                                @endif
+                                @if ($rt['detail_keluar']['batal_rusak'] > 0)
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                                        Batal Rusak {{ number_format($rt['detail_keluar']['batal_rusak']) }}
+                                    </span>
+                                @endif
+                                @if ($rt['detail_keluar']['batal_hilang'] > 0)
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                                        Batal Hilang {{ number_format($rt['detail_keluar']['batal_hilang']) }}
+                                    </span>
+                                @endif
+                            </div>
                         @endif
                     </div>
+
+                    {{-- ── Bulan Ini ── --}}
+                    <div class="mx-4 mb-3 bg-gray-50 rounded-lg border border-gray-100 px-3 py-2.5">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {{ $rt['nama_bulan'] }}
+                        </p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-400">Masuk</p>
+                                <p class="text-sm font-bold font-mono text-emerald-600">
+                                    +{{ number_format($rt['masuk_bulan_ini']) }}
+                                </p>
+                            </div>
+                            <div class="text-center border-x border-gray-200">
+                                <p class="text-xs text-gray-400">Keluar</p>
+                                <p class="text-sm font-bold font-mono text-red-500">
+                                    −{{ number_format($rt['keluar_bulan_ini']) }}
+                                </p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-400">Net</p>
+                                <p
+                                    class="text-sm font-bold font-mono {{ $rt['net_bulan_ini'] >= 0 ? 'text-emerald-600' : 'text-red-500' }}">
+                                    {{ $rt['net_bulan_ini'] >= 0 ? '+' : '' }}{{ number_format($rt['net_bulan_ini']) }}
+                                </p>
+                            </div>
+                        </div>
+                        @if ($rt['keluar_bulan_ini'] > 0)
+                            <div class="mt-1.5 pt-1.5 border-t border-gray-200 flex items-center gap-3 text-xs text-gray-400">
+                                @if ($rt['detail_bulan_ini']['digunakan'] > 0)
+                                    <span>Digunakan {{ $rt['detail_bulan_ini']['digunakan'] }}</span>
+                                @endif
+                                @if ($rt['detail_bulan_ini']['batal_rusak'] > 0)
+                                    <span>Batal Rusak {{ $rt['detail_bulan_ini']['batal_rusak'] }}</span>
+                                @endif
+                                @if ($rt['detail_bulan_ini']['batal_hilang'] > 0)
+                                    <span>Batal Hilang {{ $rt['detail_bulan_ini']['batal_hilang'] }}</span>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- ── Perubahan Terakhir (mini-timeline) ── --}}
+                    @if (count($rt['perubahan_terakhir']) > 0)
+                        <div class="px-4 pb-3">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                Perubahan Terakhir
+                            </p>
+                            <div class="space-y-1">
+                                @foreach ($rt['perubahan_terakhir'] as $ch)
+                                    <div class="flex items-center gap-2 text-xs py-1 px-2 rounded hover:bg-gray-50 transition-colors">
+                                        <span class="text-gray-300 font-mono w-10 flex-shrink-0">{{ $ch['tanggal'] }}</span>
+                                        <span
+                                            class="font-bold font-mono w-12 text-right flex-shrink-0 {{ $ch['is_masuk'] ? 'text-emerald-600' : 'text-red-500' }}">
+                                            {{ $ch['is_masuk'] ? '+' : '−' }}{{ number_format($ch['jumlah']) }}
+                                        </span>
+                                        <span
+                                            class="px-1.5 py-0.5 rounded-full text-xs font-medium {{ $ch['badge'] }} flex-shrink-0">
+                                            {{ $ch['tipe'] }}
+                                        </span>
+                                        <span class="text-gray-400 truncate">
+                                            {{ $ch['keterangan'] ?? '' }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- ── Footer: pencatatan belum lapor ── --}}
+                    @if ($rt['pencatatan_count'] > 0)
+                        <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
+                            <p class="text-xs text-gray-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                {{ $rt['pencatatan_count'] }} pencatatan belum dilaporkan
+                            </p>
+                        </div>
+                    @endif
+
                 @else
-                    <div class="px-4 py-6 text-center text-xs text-gray-400">Data tidak tersedia</div>
+                    <div class="px-4 py-8 text-center">
+                        <svg class="w-8 h-8 text-gray-200 mx-auto mb-2" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <p class="text-xs text-gray-400">Data tidak tersedia</p>
+                    </div>
                 @endif
             </div>
         @endforeach
