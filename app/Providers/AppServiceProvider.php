@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
+use App\Models\User;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,5 +38,9 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Database\Eloquent\Model::shouldBeStrict(
             ! app()->isProduction()
         );
+
+        View::composer('layouts.app', function ($view) {
+            $view->with('pendingCount', User::where('registration_status', 'pending')->where('is_active', false)->count());
+        });
     }
 }

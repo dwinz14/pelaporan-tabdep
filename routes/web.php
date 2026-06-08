@@ -4,9 +4,11 @@ use App\Http\Controllers\Admin\AuditController;
 use App\Http\Controllers\Admin\CabangController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\PeriodeController;
+use App\Http\Controllers\Admin\RegistrasiController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Akunting\AkuntingPeriodeController;
 use App\Http\Controllers\Akunting\ExportController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Kepala\KepalaPeriodeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Pic\LaporanController;
@@ -16,6 +18,14 @@ use Illuminate\Support\Facades\Route;
 
 // Redirect root ke login
 Route::get('/', fn() => redirect()->route('login'));
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store']);
+});
+
+// Halaman pending (setelah register berhasil)
+Route::get('/register/pending', fn() => view('auth.register-pending'))
+    ->name('register.pending');
 
 // Auth routes (dari Breeze)
 require __DIR__ . '/auth.php';
@@ -76,6 +86,11 @@ Route::middleware('auth')->group(function () {
             Route::put('/user/{user}',               [UserController::class, 'update'])->name('user.update');
             Route::patch('/user/{user}/toggle',      [UserController::class, 'toggleActive'])->name('user.toggle');
             Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
+
+            // register user
+            Route::get('/registrasi',                       [RegistrasiController::class, 'index'])->name('registrasi.index');
+            Route::patch('/registrasi/{user}/approve',       [RegistrasiController::class, 'approve'])->name('registrasi.approve');
+            Route::patch('/registrasi/{user}/reject',        [RegistrasiController::class, 'reject'])->name('registrasi.reject');
 
             // Manajemen Periode
             Route::get('/periode',          [PeriodeController::class, 'index'])->name('periode.index');
