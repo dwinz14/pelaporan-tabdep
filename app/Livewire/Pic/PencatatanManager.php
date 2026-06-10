@@ -55,6 +55,14 @@ class PencatatanManager extends Component
     }
 
     #[Computed(cache: false)]
+    public function stokRealtime(): array
+    {
+        return app(PencatatanLaporanService::class)
+            ->getStokRealtime(auth()->user()->id_cabang);
+    }
+
+
+    #[Computed(cache: false)]
     public function lockDates(): array
     {
         $svc = app(PencatatanLaporanService::class);

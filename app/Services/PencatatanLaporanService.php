@@ -110,6 +110,132 @@ class PencatatanLaporanService
     }
 
     // ─────────────────────────────────────────────────────────
+    // STOK REALTIME (extended version for monitoring dashboard)
+    // ─────────────────────────────────────────────────────────
+
+    /**
+     * Data stok real-time yang komprehensif per jenis.
+     *
+     * Formula:
+     *   stok_sekarang = saldo_akhir_laporan_verified_terakhir
+     *                 + tambahan_stok_sejak_lock
+     *                 - digunakan_sejak_lock
+     *                 - batal_rusak_sejak_lock
+     *                 - batal_hilang_sejak_lock
+     *
+     * Return keys per jenis: saldo_base, saldo_label, saldo_at,
+     * stok_sekarang, masuk_total, keluar_total, masuk_bulan_ini,
+     * keluar_bulan_ini, detail_keluar, detail_bulan_ini,
+     * pencatatan_count, lock_date, since, perubahan_terakhir.
+     */
+    public function getStokRealtime(int $cabangId): array
+    {
+        $result       = [];
+        $bulanIniFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $bulanIniTo   = Carbon::now()->format('Y-m-d');
+
+        foreach (JenisLaporan::cases() as $jenis) {
+            $lockDate = $this->getLockDate($cabangId, $jenis);
+
+            // ── Laporan terakhir yang submitted / verified ────
+            $lastLaporan = Laporan::where('id_cabang', $cabangId)
+                ->where('jenis', $jenis)
+                ->whereIn('status_verifikasi', [
+                    StatusVerifikasi::Submitted->value,
+                    StatusVerifikasi::VerifiedAccounting->value,
+                ])
+                ->join('periode_laporans', 'laporans.id_periode', '=', 'periode_laporans.id')
+                ->orderBy('periode_laporans.tanggal_akhir', 'desc')
+                ->select('laporans.*', 'periode_laporans.nama_periode as nama_periode_ref')
+                ->first();
+
+            $saldoBase = $lastLaporan?->saldo_akhir ?? 0;
+
+            // ── Semua pencatatan setelah lock date ───────────
+            $queryAll = PencatatanLaporan::where('id_cabang', $cabangId)
+                ->where('jenis', $jenis);
+
+            if ($lockDate) {
+                $queryAll->where('tanggal_catat', '>', $lockDate->format('Y-m-d'));
+            }
+
+            $allEntries = $queryAll->get();
+
+            // Totals sejak lock date
+            $masukTotal  = $allEntries->where('tipe_transaksi', TipeTransaksi::TambahanStok)->sum('jumlah');
+            $digunakan   = $allEntries->where('tipe_transaksi', TipeTransaksi::Digunakan)->sum('jumlah');
+            $batalRusak  = $allEntries->where('tipe_transaksi', TipeTransaksi::DibatalkanRusak)->sum('jumlah');
+            $batalHilang = $allEntries->where('tipe_transaksi', TipeTransaksi::DibatalkanHilang)->sum('jumlah');
+            $keluarTotal = $digunakan + $batalRusak + $batalHilang;
+
+            // ── Pencatatan bulan ini ─────────────────────────
+            $bulanIniEntries = $allEntries->filter(function ($p) use ($bulanIniFrom, $bulanIniTo) {
+                $tgl = $p->tanggal_catat->format('Y-m-d');
+                return $tgl >= $bulanIniFrom && $tgl <= $bulanIniTo;
+            });
+
+            $masukBulanIni      = $bulanIniEntries->where('tipe_transaksi', TipeTransaksi::TambahanStok)->sum('jumlah');
+            $digunakanBulanIni  = $bulanIniEntries->where('tipe_transaksi', TipeTransaksi::Digunakan)->sum('jumlah');
+            $batalRusakBulanIni = $bulanIniEntries->where('tipe_transaksi', TipeTransaksi::DibatalkanRusak)->sum('jumlah');
+            $batalHilangBulanIni= $bulanIniEntries->where('tipe_transaksi', TipeTransaksi::DibatalkanHilang)->sum('jumlah');
+            $keluarBulanIni     = $digunakanBulanIni + $batalRusakBulanIni + $batalHilangBulanIni;
+
+            // ── 5 perubahan terakhir ─────────────────────────
+            $perubahanTerakhir = $allEntries
+                ->sortByDesc('tanggal_catat')
+                ->take(5)
+                ->map(fn($p) => [
+                    'tanggal'    => $p->tanggal_catat->format('d/m'),
+                    'tipe'       => $p->tipe_transaksi->labelShort(),
+                    'is_masuk'   => $p->tipe_transaksi->isAddition(),
+                    'jumlah'     => $p->jumlah,
+                    'keterangan' => $p->keterangan,
+                    'badge'      => $p->tipe_transaksi->badgeClass(),
+                ])
+                ->values()
+                ->toArray();
+
+            $result[$jenis->value] = [
+                // Basis saldo
+                'saldo_base'   => $saldoBase,
+                'saldo_label'  => $lastLaporan?->nama_periode_ref ?? 'Belum ada laporan',
+                'saldo_at'     => $lockDate?->format('d/m/Y'),
+
+                // Stok real-time
+                'stok_sekarang' => $saldoBase + $masukTotal - $keluarTotal,
+
+                // Total sejak lock date
+                'masuk_total'   => $masukTotal,
+                'keluar_total'  => $keluarTotal,
+                'detail_keluar' => [
+                    'digunakan'    => $digunakan,
+                    'batal_rusak'  => $batalRusak,
+                    'batal_hilang' => $batalHilang,
+                ],
+
+                // Bulan ini
+                'masuk_bulan_ini'  => $masukBulanIni,
+                'keluar_bulan_ini' => $keluarBulanIni,
+                'net_bulan_ini'    => $masukBulanIni - $keluarBulanIni,
+                'detail_bulan_ini' => [
+                    'digunakan'    => $digunakanBulanIni,
+                    'batal_rusak'  => $batalRusakBulanIni,
+                    'batal_hilang' => $batalHilangBulanIni,
+                ],
+
+                // Meta
+                'pencatatan_count'   => $allEntries->count(),
+                'lock_date'          => $lockDate?->format('d/m/Y'),
+                'since'              => $lockDate ? $lockDate->copy()->addDay()->format('d/m/Y') : 'Awal',
+                'perubahan_terakhir' => $perubahanTerakhir,
+                'nama_bulan'         => Carbon::now()->translatedFormat('F Y'),
+            ];
+        }
+
+        return $result;
+    }
+
+    // ─────────────────────────────────────────────────────────
     // LOG
     // ─────────────────────────────────────────────────────────
 
