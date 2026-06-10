@@ -31,13 +31,16 @@ class UserService
         $role = UserRole::from($data['role']);
 
         return $this->repo->create([
-            'nik'       => strtoupper(trim($data['nik'])),
-            'name'      => trim($data['name']),
-            'email'     => isset($data['email']) ? trim($data['email']) : null,
-            'password'  => Hash::make($data['password']),
-            'role'      => $role,
-            'id_cabang' => $this->resolveIdCabang($role, $data['id_cabang'] ?? null),
-            'is_active' => true,
+            'nik'                 => strtoupper(trim($data['nik'])),
+            'name'                => trim($data['name']),
+            'email'               => isset($data['email']) ? trim($data['email']) : null,
+            'password'            => Hash::make($data['password']),
+            'role'                => $role,
+            'id_cabang'           => $this->resolveIdCabang($role, $data['id_cabang'] ?? null),
+            'is_active'           => true,
+            // User dibuat langsung oleh admin = langsung approved
+            'registration_status' => \App\Enums\RegistrationStatus::Approved,
+            'registered_at'       => null,
         ]);
     }
 

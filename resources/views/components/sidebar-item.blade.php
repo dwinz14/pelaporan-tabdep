@@ -1,23 +1,32 @@
-@props(['route', 'icon', 'label', 'activeOn' => null])
+@props(['route', 'icon', 'label', 'activeOn' => null, 'badge' => null])
 
 @php
-    $pattern  = $activeOn ?? $route;
+    $pattern = $activeOn ?? $route;
     $isActive = request()->routeIs($pattern);
 @endphp
 
 <a href="{{ route($route) }}"
-   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden
+    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden
           {{ $isActive
               ? 'bg-gradient-to-r from-indigo-500/90 to-indigo-600 text-white shadow-lg shadow-indigo-500/20'
               : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
 
     {{-- Active left bar --}}
-    @if($isActive)
+    @if ($isActive)
         <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-white/70 rounded-r-full"></span>
     @endif
 
+    {{-- Badge left bar --}}
+    @if ($badge)
+        <span
+            class="w-5 h-5 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
+            {{ $badge > 9 ? '9+' : $badge }}
+        </span>
+    @endif
+
     {{-- Icon Wrapper --}}
-    <span class="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 transition-all duration-200
+    <span
+        class="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 transition-all duration-200
                  {{ $isActive ? 'bg-white/20' : 'bg-white/[0.04] group-hover:bg-white/10' }}">
         @if ($icon === 'grid')
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

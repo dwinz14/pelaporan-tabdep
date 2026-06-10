@@ -63,7 +63,8 @@
                     <div class="px-4 pt-5 pb-3">
                         <div class="flex items-end justify-between">
                             <div>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide font-medium flex items-center gap-1.5">
+                                <p
+                                    class="text-xs text-gray-400 uppercase tracking-wide font-medium flex items-center gap-1.5">
                                     <span class="relative flex h-2 w-2">
                                         <span
                                             class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $jenisKey === 'tabungan' ? 'bg-indigo-400' : 'bg-slate-400' }} opacity-75"></span>
@@ -75,10 +76,10 @@
                                 <p class="text-4xl font-bold text-gray-900 font-mono mt-1.5 tracking-tight">
                                     {{ number_format($rt['stok_sekarang']) }}
                                 </p>
-                                <p class="text-xs text-gray-400 mt-1">
+                                {{-- <p class="text-xs text-gray-400 mt-1">
                                     Basis: Saldo per {{ $rt['saldo_at'] ?? '—' }}
                                     <span class="text-gray-300">({{ $rt['saldo_label'] }})</span>
-                                </p>
+                                </p> --}}
                             </div>
                             <div class="text-right">
                                 <p class="text-xs text-gray-300 font-medium">Saldo Awal</p>
@@ -93,23 +94,23 @@
                     <div class="px-4 pb-3">
                         <div class="grid grid-cols-2 gap-3">
                             {{-- Masuk --}}
-                            <div class="bg-emerald-50 rounded-lg px-3 py-2.5 border border-emerald-100">
+                            {{-- <div class="bg-emerald-50 rounded-lg px-3 py-2.5 border border-emerald-100">
                                 <p class="text-xs text-emerald-600 font-medium mb-0.5">
                                     ↑ Masuk sejak {{ $rt['since'] }}
                                 </p>
                                 <p class="text-xl font-bold font-mono text-emerald-700">
                                     +{{ number_format($rt['masuk_total']) }}
                                 </p>
-                            </div>
+                            </div> --}}
                             {{-- Keluar --}}
-                            <div class="bg-red-50 rounded-lg px-3 py-2.5 border border-red-100">
+                            {{-- <div class="bg-red-50 rounded-lg px-3 py-2.5 border border-red-100">
                                 <p class="text-xs text-red-500 font-medium mb-0.5">
                                     ↓ Keluar sejak {{ $rt['since'] }}
                                 </p>
                                 <p class="text-xl font-bold font-mono text-red-600">
                                     −{{ number_format($rt['keluar_total']) }}
                                 </p>
-                            </div>
+                            </div> --}}
                         </div>
 
                         {{-- Detail breakdown keluar --}}
@@ -140,7 +141,8 @@
 
                     {{-- ── Bulan Ini ── --}}
                     <div class="mx-4 mb-3 bg-gray-50 rounded-lg border border-gray-100 px-3 py-2.5">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                        <p
+                            class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -170,7 +172,8 @@
                             </div>
                         </div>
                         @if ($rt['keluar_bulan_ini'] > 0)
-                            <div class="mt-1.5 pt-1.5 border-t border-gray-200 flex items-center gap-3 text-xs text-gray-400">
+                            <div
+                                class="mt-1.5 pt-1.5 border-t border-gray-200 flex items-center gap-3 text-xs text-gray-400">
                                 @if ($rt['detail_bulan_ini']['digunakan'] > 0)
                                     <span>Digunakan {{ $rt['detail_bulan_ini']['digunakan'] }}</span>
                                 @endif
@@ -192,8 +195,10 @@
                             </p>
                             <div class="space-y-1">
                                 @foreach ($rt['perubahan_terakhir'] as $ch)
-                                    <div class="flex items-center gap-2 text-xs py-1 px-2 rounded hover:bg-gray-50 transition-colors">
-                                        <span class="text-gray-300 font-mono w-10 flex-shrink-0">{{ $ch['tanggal'] }}</span>
+                                    <div
+                                        class="flex items-center gap-2 text-xs py-1 px-2 rounded hover:bg-gray-50 transition-colors">
+                                        <span
+                                            class="text-gray-300 font-mono w-10 flex-shrink-0">{{ $ch['tanggal'] }}</span>
                                         <span
                                             class="font-bold font-mono w-12 text-right flex-shrink-0 {{ $ch['is_masuk'] ? 'text-emerald-600' : 'text-red-500' }}">
                                             {{ $ch['is_masuk'] ? '+' : '−' }}{{ number_format($ch['jumlah']) }}
@@ -224,7 +229,6 @@
                             </p>
                         </div>
                     @endif
-
                 @else
                     <div class="px-4 py-8 text-center">
                         <svg class="w-8 h-8 text-gray-200 mx-auto mb-2" fill="none" stroke="currentColor"

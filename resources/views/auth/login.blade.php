@@ -75,6 +75,14 @@
                     </button>
 
                 </form>
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-500">
+                        Belum punya akun?
+                        <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                            Daftar di sini
+                        </a>
+                    </p>
+                </div>
             </div>
 
         </div>
