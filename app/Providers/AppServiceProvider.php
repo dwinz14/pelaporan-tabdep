@@ -27,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\Repositories\LaporanRepositoryInterface::class,
             \App\Repositories\LaporanRepository::class,
         );
+        $this->app->singleton(
+            \App\Services\NotificationService::class,
+            \App\Services\NotificationService::class,
+        );
     }
 
     public function boot(): void
