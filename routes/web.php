@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
             Route::post('/user/bulk-reset-password', [UserController::class, 'bulkResetPassword'])->name('user.bulk-reset-password');
             Route::patch('/user/bulk-deactivate',     [UserController::class, 'bulkDeactivate'])->name('user.bulk-deactivate');
+            Route::patch('/user/bulk-activate',       [UserController::class, 'bulkActivate'])->name('user.bulk-activate');
 
             // register user
             Route::get('/registrasi',                       [RegistrasiController::class, 'index'])->name('registrasi.index');

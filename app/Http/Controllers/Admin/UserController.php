@@ -36,7 +36,6 @@ class UserController extends Controller
             'roles'        => UserRole::cases(),
             'selectedRole' => $request->string('role')->toString(),
             'search'       => $request->string('search')->toString(),
-            'bulkAffectedCount' => $this->userService->getAffectedCount($filters),
         ]);
     }
 
@@ -101,12 +100,12 @@ class UserController extends Controller
 
     public function bulkResetPassword(Request $request): RedirectResponse
     {
-        $filters = [
-            'search' => $request->string('search')->toString(),
-            'role'   => $request->string('role')->toString() ?: null,
-        ];
+        $request->validate([
+            'user_ids' => ['required', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
+        ]);
 
-        $count = $this->userService->bulkResetPassword($filters);
+        $count = $this->userService->bulkResetPassword($request->user_ids);
 
         return redirect()->route('admin.user.index', $request->only(['search', 'role']))
             ->with('success', $count > 0
@@ -116,16 +115,31 @@ class UserController extends Controller
 
     public function bulkDeactivate(Request $request): RedirectResponse
     {
-        $filters = [
-            'search' => $request->string('search')->toString(),
-            'role'   => $request->string('role')->toString() ?: null,
-        ];
+        $request->validate([
+            'user_ids' => ['required', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
+        ]);
 
-        $count = $this->userService->bulkDeactivate($filters);
+        $count = $this->userService->bulkDeactivate($request->user_ids);
 
         return redirect()->route('admin.user.index', $request->only(['search', 'role']))
             ->with('success', $count > 0
                 ? "{$count} user berhasil dinonaktifkan."
                 : 'Tidak ada user yang sesuai untuk dinonaktifkan (Super Admin dikecualikan).');
+    }
+
+    public function bulkActivate(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'user_ids' => ['required', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
+        ]);
+
+        $count = $this->userService->bulkActivate($request->user_ids);
+
+        return redirect()->route('admin.user.index', $request->only(['search', 'role']))
+            ->with('success', $count > 0
+                ? "{$count} user berhasil diaktifkan."
+                : 'Tidak ada user yang sesuai untuk diaktifkan (Super Admin dikecualikan).');
     }
 }

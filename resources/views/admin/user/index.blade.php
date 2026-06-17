@@ -1,6 +1,19 @@
 <x-app-layout :title="$title" :subtitle="$subtitle">
 
-    <div x-data="{ showResetAllModal: false, showDeactivateAllModal: false }">
+    <div x-data="{
+        showResetAllModal: false,
+        showDeactivateAllModal: false,
+        showActivateAllModal: false,
+        selectedUsers: [],
+        selectAll: false,
+        toggleAll() {
+            if (this.selectAll) {
+                this.selectedUsers = {{ $users->pluck('id')->toJson() }};
+            } else {
+                this.selectedUsers = [];
+            }
+        }
+    }" x-init="$watch('selectedUsers', val => { selectAll = val.length === {{ $users->count() }} && val.length > 0 })">
 
         {{-- Toolbar --}}
         <div class="flex items-center justify-between mb-5 gap-4 flex-wrap">
@@ -30,42 +43,6 @@
 
             <div class="flex items-center gap-2">
 
-                {{-- Bulk: Reset Password Semua --}}
-                <button type="button" @click="showResetAllModal = true"
-                    {{ $bulkAffectedCount === 0 ? 'disabled' : '' }}
-                    class="flex items-center gap-1.5 px-3 py-2 border text-xs font-semibold rounded-lg transition-colors
-                       {{ $bulkAffectedCount === 0
-                           ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                           : 'border-amber-300 text-amber-700 hover:bg-amber-50' }}">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Reset Password Semua
-                    <span
-                        class="px-1.5 py-0.5 rounded-full {{ $bulkAffectedCount === 0 ? 'bg-gray-100 text-gray-400' : 'bg-amber-100 text-amber-800' }}">
-                        {{ $bulkAffectedCount }}
-                    </span>
-                </button>
-
-                {{-- Bulk: Nonaktifkan Semua --}}
-                <button type="button" @click="showDeactivateAllModal = true"
-                    {{ $bulkAffectedCount === 0 ? 'disabled' : '' }}
-                    class="flex items-center gap-1.5 px-3 py-2 border text-xs font-semibold rounded-lg transition-colors
-                       {{ $bulkAffectedCount === 0
-                           ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                           : 'border-red-300 text-red-600 hover:bg-red-50' }}">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                    </svg>
-                    Nonaktifkan Semua
-                    <span
-                        class="px-1.5 py-0.5 rounded-full {{ $bulkAffectedCount === 0 ? 'bg-gray-100 text-gray-400' : 'bg-red-100 text-red-700' }}">
-                        {{ $bulkAffectedCount }}
-                    </span>
-                </button>
-
                 <a href="{{ route('admin.user.create') }}"
                     class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +71,6 @@
                         {{ \App\Enums\UserRole::from($selectedRole)->label() }}
                     </span>
                 @endif
-                — aksi massal di bawah akan mengikuti filter ini.
             </div>
         @endif
 
@@ -103,6 +79,9 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-4 py-3 text-left w-10">
+                            <input type="checkbox" x-model="selectAll" @change="toggleAll" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        </th>
                         <th
                             class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-10">
                             No</th>
@@ -120,13 +99,22 @@
                             class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">
                             Status</th>
                         <th
-                            class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-48">
-                            Aksi</th>
+                            class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-48 relative">
+                            Aksi
+                            <div class="flex flex-wrap gap-1 mt-2 justify-end" x-show="selectedUsers.length > 0" x-cloak>
+                                <button type="button" @click="showResetAllModal = true" class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium border border-amber-200 hover:bg-amber-200 transition-colors">Reset PW</button>
+                                <button type="button" @click="showDeactivateAllModal = true" class="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-medium border border-red-200 hover:bg-red-200 transition-colors">Nonaktifkan</button>
+                                <button type="button" @click="showActivateAllModal = true" class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium border border-green-200 hover:bg-green-200 transition-colors">Aktifkan</button>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($users as $user)
                         <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" :value="{{ $user->id }}" x-model.number="selectedUsers" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            </td>
                             <td class="px-4 py-3 text-gray-400 text-xs">
                                 {{ $users->firstItem() + $loop->index }}
                             </td>
@@ -200,7 +188,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-10 text-center text-gray-400 text-sm">
+                            <td colspan="8" class="px-4 py-10 text-center text-gray-400 text-sm">
                                 Tidak ada user ditemukan.
                             </td>
                         </tr>
@@ -242,39 +230,22 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-900">Reset Password Semua User</h3>
-                            <p class="text-xs text-gray-500 mt-0.5">Berdasarkan filter yang sedang aktif</p>
+                            <h3 class="font-semibold text-gray-900">Reset Password User Terpilih</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Berdasarkan checkbox yang dicentang</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="px-6 py-4">
-                    {{-- Scope Filter --}}
-                    <div class="flex flex-wrap gap-1.5 mb-3">
-                        @if ($search)
-                            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Pencarian:
-                                "{{ $search }}"</span>
-                        @endif
-                        @if ($selectedRole)
-                            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                                Role: {{ \App\Enums\UserRole::from($selectedRole)->label() }}
-                            </span>
-                        @endif
-                        @if (!$search && !$selectedRole)
-                            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Semua user (tanpa
-                                filter)</span>
-                        @endif
-                    </div>
-
                     <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-                        Password <strong>{{ $bulkAffectedCount }} user</strong> akan direset menjadi:
+                        Password <strong x-text="selectedUsers.length"></strong> user akan direset menjadi:
                         <code class="bg-white px-2 py-0.5 rounded font-mono font-semibold border border-amber-200">
                             {{ \App\Services\UserService::DEFAULT_PASSWORD }}
                         </code>
                     </div>
 
                     <p class="text-xs text-gray-400 mt-3">
-                        Super Admin selalu dikecualikan dari aksi ini, apapun filter yang aktif.
+                        Super Admin selalu dikecualikan dari aksi ini.
                     </p>
                 </div>
 
@@ -282,6 +253,9 @@
                     @csrf
                     <input type="hidden" name="search" value="{{ $search }}">
                     <input type="hidden" name="role" value="{{ $selectedRole }}">
+                    <template x-for="id in selectedUsers" :key="id">
+                        <input type="hidden" name="user_ids[]" :value="id">
+                    </template>
 
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                         <button type="button" @click="showResetAllModal = false"
@@ -290,14 +264,13 @@
                         </button>
                         <button type="submit"
                             class="px-5 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors">
-                            Ya, Reset {{ $bulkAffectedCount }} Password
+                            Ya, Reset <span x-text="selectedUsers.length"></span> Password
                         </button>
                     </div>
                 </form>
 
             </div>
         </div>
-
 
         {{-- ═══════════ MODAL: NONAKTIFKAN SEMUA ═══════════ --}}
         <div x-show="showDeactivateAllModal" x-cloak x-transition
@@ -316,36 +289,20 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-900">Nonaktifkan Semua User</h3>
-                            <p class="text-xs text-gray-500 mt-0.5">Berdasarkan filter yang sedang aktif</p>
+                            <h3 class="font-semibold text-gray-900">Nonaktifkan User Terpilih</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Berdasarkan checkbox yang dicentang</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="px-6 py-4">
-                    <div class="flex flex-wrap gap-1.5 mb-3">
-                        @if ($search)
-                            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Pencarian:
-                                "{{ $search }}"</span>
-                        @endif
-                        @if ($selectedRole)
-                            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                                Role: {{ \App\Enums\UserRole::from($selectedRole)->label() }}
-                            </span>
-                        @endif
-                        @if (!$search && !$selectedRole)
-                            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Semua user (tanpa
-                                filter)</span>
-                        @endif
-                    </div>
-
                     <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-                        <strong>{{ $bulkAffectedCount }} user</strong> akan dinonaktifkan dan tidak dapat login
+                        <strong x-text="selectedUsers.length"></strong> user akan dinonaktifkan dan tidak dapat login
                         sampai diaktifkan kembali secara manual.
                     </div>
 
                     <p class="text-xs text-gray-400 mt-3">
-                        Super Admin (termasuk akun Anda) selalu dikecualikan dari aksi ini, apapun filter yang aktif.
+                        Super Admin (termasuk akun Anda) selalu dikecualikan dari aksi ini.
                     </p>
                 </div>
 
@@ -353,6 +310,9 @@
                     @csrf @method('PATCH')
                     <input type="hidden" name="search" value="{{ $search }}">
                     <input type="hidden" name="role" value="{{ $selectedRole }}">
+                    <template x-for="id in selectedUsers" :key="id">
+                        <input type="hidden" name="user_ids[]" :value="id">
+                    </template>
 
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
                         <button type="button" @click="showDeactivateAllModal = false"
@@ -361,7 +321,63 @@
                         </button>
                         <button type="submit"
                             class="px-5 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors">
-                            Ya, Nonaktifkan {{ $bulkAffectedCount }} User
+                            Ya, Nonaktifkan <span x-text="selectedUsers.length"></span> User
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+        {{-- ═══════════ MODAL: AKTIFKAN SEMUA ═══════════ --}}
+        <div x-show="showActivateAllModal" x-cloak x-transition
+            class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5);"
+            x-on:keydown.escape.window="showActivateAllModal = false">
+
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" @click.stop>
+
+                <div class="px-6 py-5 border-b border-gray-100">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900">Aktifkan User Terpilih</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Berdasarkan checkbox yang dicentang</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4">
+                    <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                        <strong x-text="selectedUsers.length"></strong> user akan diaktifkan dan dapat login kembali.
+                    </div>
+
+                    <p class="text-xs text-gray-400 mt-3">
+                        Hanya user nonaktif yang akan terpengaruh.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ route('admin.user.bulk-activate') }}">
+                    @csrf @method('PATCH')
+                    <input type="hidden" name="search" value="{{ $search }}">
+                    <input type="hidden" name="role" value="{{ $selectedRole }}">
+                    <template x-for="id in selectedUsers" :key="id">
+                        <input type="hidden" name="user_ids[]" :value="id">
+                    </template>
+
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+                        <button type="button" @click="showActivateAllModal = false"
+                            class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="px-5 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors">
+                            Ya, Aktifkan <span x-text="selectedUsers.length"></span> User
                         </button>
                     </div>
                 </form>
