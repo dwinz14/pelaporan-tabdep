@@ -50,7 +50,7 @@
                             Nomor Induk Karyawan (NIK) <span class="text-red-500">*</span>
                         </label>
                         <input type="text" id="nik" name="nik" value="{{ old('nik') }}"
-                            placeholder="Contoh: AP123456789" maxlength="11" autocomplete="off"
+                            placeholder="Contoh: AP123456789" maxlength="11" autocomplete="off" oninput="maskNik(this)"
                             class="w-full px-3 py-2.5 border rounded-lg text-sm font-mono
                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
                                {{ $errors->has('nik') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
@@ -113,27 +113,65 @@
                     </div>
 
                     {{-- Password --}}
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-                                Password <span class="text-red-500">*</span>
-                            </label>
-                            <input type="password" id="password" name="password"
-                                class="w-full px-3 py-2.5 border rounded-lg text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                   {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
-                            @error('password')
-                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                            @enderror
-                            <p class="mt-1 text-xs text-gray-400">Minimal 6 karakter</p>
+                    <div x-data="{
+                        pwd: '',
+                        confirmPwd: '',
+                        get lenOk() { return this.pwd.length >= 6 },
+                        get upperOk() { return /[A-Z]/.test(this.pwd) },
+                        get numOk() { return /[0-9]/.test(this.pwd) },
+                        get specialOk() { return /[^A-Za-z0-9]/.test(this.pwd) },
+                        get matchOk() { return this.confirmPwd.length > 0 && this.pwd === this.confirmPwd },
+                    }">
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Password <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="password" name="password" x-model="pwd"
+                                    class="w-full px-3 py-2.5 border rounded-lg text-sm
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                       {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
+                                @error('password')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Konfirmasi Password <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="password_confirmation" name="password_confirmation"
+                                    x-model="confirmPwd"
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <p x-show="confirmPwd.length > 0" x-cloak class="mt-1 text-xs"
+                                    :class="matchOk ? 'text-emerald-600' : 'text-red-500'">
+                                    <span x-text="matchOk ? '✓ Password cocok' : '✕ Password tidak cocok'"></span>
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
-                                Konfirmasi Password <span class="text-red-500">*</span>
-                            </label>
-                            <input type="password" id="password_confirmation" name="password_confirmation"
-                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+
+                        {{-- Checklist Kekuatan Password --}}
+                        <div class="mt-2.5 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <p class="text-xs font-medium text-gray-600 mb-2">Password harus memenuhi:</p>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                @foreach ([['get' => 'lenOk', 'label' => 'Minimal 6 karakter'], ['get' => 'upperOk', 'label' => 'Huruf kapital (A-Z)'], ['get' => 'numOk', 'label' => 'Angka (0-9)'], ['get' => 'specialOk', 'label' => 'Karakter spesial (!@#$%...)']] as $item)
+                                    <p class="text-xs flex items-center gap-1.5"
+                                        :class="{{ $item['get'] }} ? 'text-emerald-600' : 'text-gray-400'">
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"
+                                            x-show="{{ $item['get'] }}" x-cloak>
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24" x-show="!{{ $item['get'] }}">
+                                            <circle cx="12" cy="12" r="9" stroke-width="1.5" />
+                                        </svg>
+                                        {{ $item['label'] }}
+                                    </p>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
 

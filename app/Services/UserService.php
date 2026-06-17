@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
-    public const DEFAULT_PASSWORD = 'password123';
+    public const DEFAULT_PASSWORD = 'Password@123';
 
     public function __construct(
         private readonly UserRepositoryInterface $repo,
@@ -71,6 +71,76 @@ class UserService
     public function resetPassword(User $user): User
     {
         return $this->repo->resetPassword($user, self::DEFAULT_PASSWORD);
+    }
+
+    /**
+     * Hitung jumlah user yang akan terdampak bulk action sesuai filter,
+     * SELALU mengecualikan role Super Admin.
+     */
+    public function getAffectedCount(array $filters): int
+    {
+        return $this->repo->getFilteredQuery($filters)
+            ->where('role', '!=', UserRole::SuperAdmin->value)
+            ->count();
+    }
+
+    /**
+     * Reset password massal ke password default, sesuai filter aktif.
+     * Super Admin selalu dikecualikan.
+     */
+    public function bulkResetPassword(array $filters): int
+    {
+        $users = $this->repo->getFilteredQuery($filters)
+            ->where('role', '!=', UserRole::SuperAdmin->value)
+            ->where('id', '!=', auth()->id())
+            ->get();
+
+        foreach ($users as $user) {
+            $user->update(['password' => Hash::make(self::DEFAULT_PASSWORD)]);
+        }
+
+        if ($users->isNotEmpty()) {
+            activity('user')
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'jumlah' => $users->count(),
+                    'filter' => $filters,
+                    'nik_list' => $users->pluck('nik')->implode(', '),
+                ])
+                ->log("Reset password massal untuk {$users->count()} user");
+        }
+
+        return $users->count();
+    }
+
+    /**
+     * Nonaktifkan massal user sesuai filter aktif.
+     * Super Admin dan user yang sedang login selalu dikecualikan.
+     */
+    public function bulkDeactivate(array $filters): int
+    {
+        $users = $this->repo->getFilteredQuery($filters)
+            ->where('role', '!=', UserRole::SuperAdmin->value)
+            ->where('id', '!=', auth()->id())
+            ->where('is_active', true) // skip yang sudah nonaktif
+            ->get();
+
+        foreach ($users as $user) {
+            $user->update(['is_active' => false]);
+        }
+
+        if ($users->isNotEmpty()) {
+            activity('user')
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'jumlah'   => $users->count(),
+                    'filter'   => $filters,
+                    'nik_list' => $users->pluck('nik')->implode(', '),
+                ])
+                ->log("Nonaktifkan massal {$users->count()} user");
+        }
+
+        return $users->count();
     }
 
     private function resolveIdCabang(UserRole $role, mixed $idCabang): ?int

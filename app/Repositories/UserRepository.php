@@ -4,8 +4,9 @@ namespace App\Repositories;
 
 use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -53,5 +54,19 @@ class UserRepository implements UserRepositoryInterface
     {
         $user->update(['password' => Hash::make($password)]);
         return $user->fresh();
+    }
+
+    public function getFilteredQuery(array $filters = []): Builder
+    {
+        return User::query()
+            ->when(
+                $filters['search'] ?? null,
+                fn($q, $search) =>
+                $q->where(function ($q) use ($search) {
+                    $q->where('nik', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
+                })
+            )
+            ->when($filters['role'] ?? null, fn($q, $role) => $q->where('role', $role));
     }
 }
