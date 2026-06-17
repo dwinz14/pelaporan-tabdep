@@ -8,9 +8,14 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Services\NotificationService;
 
 class RegistrasiController extends Controller
 {
+    public function __construct(
+        private readonly NotificationService $notifService,
+    ) {}
+
     public function index(Request $request): View
     {
         $tab = $request->string('tab')->toString() ?: 'pending';
@@ -48,6 +53,7 @@ class RegistrasiController extends Controller
             'registration_status' => RegistrationStatus::Approved,
             'catatan_penolakan'   => null,
         ]);
+        $this->notifService->notifyRegistrasiDisetujui($user);
 
         activity('registrasi')
             ->performedOn($user)
@@ -74,6 +80,7 @@ class RegistrasiController extends Controller
             'registration_status' => RegistrationStatus::Rejected,
             'catatan_penolakan'   => trim($request->catatan_penolakan),
         ]);
+        $this->notifService->notifyRegistrasiDitolak($user, trim($request->catatan_penolakan));
 
         activity('registrasi')
             ->performedOn($user)

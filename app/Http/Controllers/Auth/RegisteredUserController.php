@@ -6,14 +6,17 @@ use App\Enums\RegistrationStatus;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Services\NotificationService;
 use App\Models\Cabang;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
+
 class RegisteredUserController extends Controller
 {
+
     public function create(): View
     {
         $cabangs = Cabang::where('is_active', true)
@@ -39,6 +42,7 @@ class RegisteredUserController extends Controller
             'registered_at'       => now(),
         ]);
 
+        app(NotificationService::class)->notifyRegistrasiBaru($user);
         return redirect()->route('register.pending');
     }
 }
