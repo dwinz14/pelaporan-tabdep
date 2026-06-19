@@ -34,6 +34,13 @@ require __DIR__ . '/auth.php';
 // Protected routes
 Route::middleware('auth')->group(function () {
 
+    // ── Profile (semua role) ──────────────────────────────────
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/',         [ProfileController::class, 'index'])->name('index');
+        Route::put('/info',     [ProfileController::class, 'updateProfile'])->name('update');
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
+    });
+
     // PIC Cabang
     Route::middleware('role:pic_cabang')
         ->prefix('pic')

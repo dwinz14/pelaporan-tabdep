@@ -2,59 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\Profile\UpdatePasswordRequest;
+use App\Http\Requests\Profile\UpdateProfileRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
-    public function edit(Request $request): View
+    public function index(): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
+        return view('profile.index', [
+            'title'    => 'Profil Saya',
+            'subtitle' => 'Kelola informasi akun Anda',
+            'user'     => auth()->user(),
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function updateProfile(UpdateProfileRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = auth()->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
+        $oldData = [
+            'name'  => $user->name,
+            'email' => $user->email,
+        ];
 
-        $request->user()->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        $user->update([
+            'name'  => trim($request->name),
+            'email' => $request->email ? trim($request->email) : null,
         ]);
 
-        $user = $request->user();
+        activity('profile')
+            ->performedOn($user)
+            ->causedBy($user)
+            ->withProperties([
+                'old' => $oldData,
+                'new' => [
+                    'name'  => $user->fresh()->name,
+                    'email' => $user->fresh()->email,
+                ],
+            ])
+            ->log("{$user->name} memperbarui data profil");
 
-        Auth::logout();
+        return redirect()->route('profile.index')
+            ->with('success_profile', 'Data profil berhasil diperbarui.');
+    }
 
-        $user->delete();
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
+    {
+        $user = auth()->user();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
 
-        return Redirect::to('/');
+        activity('profile')
+            ->performedOn($user)
+            ->causedBy($user)
+            ->log("{$user->name} mengganti password");
+
+        // Regenerate session agar session lama invalid setelah ganti password
+        $request->session()->regenerate();
+
+        return redirect()->route('profile.index')
+            ->with('success_password', 'Password berhasil diperbarui. Silakan login ulang jika diperlukan.');
     }
 }
