@@ -245,49 +245,38 @@
             </nav>
 
             {{-- ── User Profile & Logout ── --}}
-            <div class="border-t border-white/[0.06] p-3 flex-shrink-0">
-                {{-- User card --}}
-                <div class="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] mb-2">
-                    {{-- Avatar --}}
-                    <div class="avatar-wrap relative flex-shrink-0">
-                        <div
-                            class="avatar-ring w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center transition-all duration-200 shadow-lg shadow-indigo-500/20">
-                            <span class="text-white text-xs font-bold tracking-wide">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                            </span>
-                        </div>
-                        <span
-                            class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-900"></span>
+            <div class="border-t border-slate-800 p-4">
+                <a href="{{ route('profile.index') }}"
+                    class="flex items-center gap-3 mb-3 px-2 py-1.5 rounded-lg
+               hover:bg-slate-800 transition-colors group">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs font-bold">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                        </span>
                     </div>
-                    {{-- Info --}}
                     <div class="min-w-0 flex-1">
-                        <p class="text-white text-xs font-semibold truncate leading-snug">
+                        <p
+                            class="text-white text-xs font-medium truncate group-hover:text-indigo-300 transition-colors">
                             {{ auth()->user()->name }}
                         </p>
-                        <p class="text-slate-400 text-[11px] truncate leading-snug mt-0.5">
-                            {{ auth()->user()->roleLabel() }}
-                        </p>
+                        <p class="text-slate-400 text-xs truncate">{{ auth()->user()->roleLabel() }}</p>
                     </div>
-                    {{-- Options dot --}}
-                    <div class="flex-shrink-0">
-                        <svg class="w-3.5 h-3.5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                                d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                        </svg>
-                    </div>
-                </div>
+                    <svg class="w-3 h-3 text-slate-600 group-hover:text-slate-400 flex-shrink-0" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
 
-                {{-- Logout --}}
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                        class="logout-btn w-full flex items-center justify-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 font-medium">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        class="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400
+                   hover:text-white hover:bg-slate-800 rounded transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
-                        Keluar dari Sesi
+                        Keluar
                     </button>
                 </form>
             </div>

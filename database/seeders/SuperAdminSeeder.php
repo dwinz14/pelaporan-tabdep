@@ -25,6 +25,6 @@ class SuperAdminSeeder extends Seeder
 
         $this->command->info('Super Admin berhasil dibuat.');
         $this->command->info('NIK: AP111111111');
-        $this->command->info('Password: admin123');
+        $this->command->info('Password: Admin@123');
     }
 }

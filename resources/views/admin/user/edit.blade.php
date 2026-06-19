@@ -10,7 +10,16 @@
             </div>
 
             <form method="POST" action="{{ route('admin.user.update', $user) }}" class="px-6 py-5 space-y-4"
-                x-data="{ role: '{{ old('role', $user->role->value) }}' }">
+                x-data="{
+                    role: '{{ old('role', $user->role->value) }}',
+                    pwd: '',
+                    confirmPwd: '',
+                    get lenOk() { return this.pwd.length >= 6 },
+                    get upperOk() { return /[A-Z]/.test(this.pwd) },
+                    get numOk() { return /[0-9]/.test(this.pwd) },
+                    get specialOk() { return /[^A-Za-z0-9]/.test(this.pwd) },
+                    get matchOk() { return this.confirmPwd.length > 0 && this.pwd === this.confirmPwd }
+                }">
                 @csrf @method('PUT')
 
                 {{-- NIK --}}
@@ -19,7 +28,7 @@
                         NIK <span class="text-red-500">*</span>
                     </label>
                     <input type="text" id="nik" name="nik" value="{{ old('nik', $user->nik) }}"
-                        maxlength="11"
+                        maxlength="11" oninput="maskNik(this)"
                         class="w-full px-3 py-2 border rounded-lg text-sm font-mono
                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
                            {{ $errors->has('nik') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
@@ -62,10 +71,10 @@
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
                             Password Baru <span class="text-gray-400 font-normal">(kosongkan jika tidak diubah)</span>
                         </label>
-                        <input type="password" id="password" name="password"
+                        <input type="password" id="password" name="password" x-model="pwd"
                             class="w-full px-3 py-2 border rounded-lg text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                               {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                   {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
                         @error('password')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -75,8 +84,36 @@
                             Konfirmasi Password
                         </label>
                         <input type="password" id="password_confirmation" name="password_confirmation"
+                            x-model="confirmPwd"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
-                               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <p x-show="confirmPwd.length > 0" x-cloak class="mt-1 text-xs"
+                            :class="matchOk ? 'text-emerald-600' : 'text-red-500'">
+                            <span x-text="matchOk ? '✓ Cocok' : '✕ Tidak cocok'"></span>
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Checklist Kekuatan Password — hanya muncul saat mulai diketik --}}
+                <div x-show="pwd.length > 0" x-cloak class="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p class="text-xs font-medium text-gray-600 mb-2">Password baru harus memenuhi:</p>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        @foreach ([['get' => 'lenOk', 'label' => 'Minimal 6 karakter'], ['get' => 'upperOk', 'label' => 'Huruf kapital (A-Z)'], ['get' => 'numOk', 'label' => 'Angka (0-9)'], ['get' => 'specialOk', 'label' => 'Karakter spesial']] as $item)
+                            <p class="text-xs flex items-center gap-1.5"
+                                :class="{{ $item['get'] }} ? 'text-emerald-600' : 'text-gray-400'">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"
+                                    x-show="{{ $item['get'] }}" x-cloak>
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24" x-show="!{{ $item['get'] }}">
+                                    <circle cx="12" cy="12" r="9" stroke-width="1.5" />
+                                </svg>
+                                {{ $item['label'] }}
+                            </p>
+                        @endforeach
                     </div>
                 </div>
 

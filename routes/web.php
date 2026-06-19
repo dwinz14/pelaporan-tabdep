@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn() => redirect()->route('login'));
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('/register', [RegisteredUserController::class, 'store']);
+    Route::post('/register', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:3,1');
 });
 
 // Halaman pending (setelah register berhasil)
@@ -34,6 +35,11 @@ require __DIR__ . '/auth.php';
 // Protected routes
 Route::middleware('auth')->group(function () {
 
+    // ── Profile (semua role) ──────────────────────────────────
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/',         [ProfileController::class, 'index'])->name('index');
+        Route::put('/info',     [ProfileController::class, 'updateProfile'])->name('update');
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
     // ── Notifications (semua role authenticated) ──────────────
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/',              [NotificationController::class, 'index'])->name('index');
@@ -96,6 +102,9 @@ Route::middleware('auth')->group(function () {
             Route::put('/user/{user}',               [UserController::class, 'update'])->name('user.update');
             Route::patch('/user/{user}/toggle',      [UserController::class, 'toggleActive'])->name('user.toggle');
             Route::post('/user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
+            Route::post('/user/bulk-reset-password', [UserController::class, 'bulkResetPassword'])->name('user.bulk-reset-password');
+            Route::patch('/user/bulk-deactivate',     [UserController::class, 'bulkDeactivate'])->name('user.bulk-deactivate');
+            Route::patch('/user/bulk-activate',       [UserController::class, 'bulkActivate'])->name('user.bulk-activate');
 
             // register user
             Route::get('/registrasi',                       [RegistrasiController::class, 'index'])->name('registrasi.index');

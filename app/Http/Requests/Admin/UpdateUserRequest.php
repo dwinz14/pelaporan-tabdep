@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\UserRole;
+use App\Rules\StrongPassword;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,7 +25,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['nullable', 'email', 'max:100'],
-            'password' => ['nullable', 'string', 'min:6', 'confirmed'],
+            'password' => ['required', 'string', 'min:6', new StrongPassword, 'confirmed'],
             'role'     => ['required', Rule::enum(UserRole::class)],
             'id_cabang' => [
                 Rule::requiredIf(fn() => $this->input('role') === UserRole::PicCabang->value),
