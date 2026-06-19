@@ -19,6 +19,7 @@ class PeriodeLaporanService
     public function __construct(
         private readonly PeriodeLaporanRepositoryInterface $repo,
         private readonly LaporanRepositoryInterface $laporanRepo,
+        private readonly NotificationService $notifService,
     ) {}
 
     public function list(int $perPage = 15, array $filters = []): LengthAwarePaginator
@@ -101,6 +102,7 @@ class PeriodeLaporanService
                 ->causedBy(auth()->user())
                 ->log("Periode {$periode->nama_periode} berhasil di-generate ({$cabangs->count()} cabang)");
 
+            $this->notifService->notifyPeriodeBaru($periode);
             return $periode;
         });
     }

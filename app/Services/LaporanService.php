@@ -6,11 +6,13 @@ use App\Contracts\Repositories\LaporanRepositoryInterface;
 use App\Enums\StatusVerifikasi;
 use App\Models\Laporan;
 use Illuminate\Validation\ValidationException;
+use App\Services\NotificationService;
 
 class LaporanService
 {
     public function __construct(
         private readonly LaporanRepositoryInterface $repo,
+        private readonly NotificationService $notifService,
     ) {}
 
     /**
@@ -67,6 +69,7 @@ class LaporanService
             'tgl_submit'            => now(),
             'catatan_revisi'        => null,
         ]);
+        $this->notifService->notifyLaporanSubmitted($updated);
 
         activity('laporan')
             ->performedOn($updated)
@@ -99,6 +102,8 @@ class LaporanService
             'verified_by_akunting'    => auth()->id(),
             'catatan_revisi'          => null,
         ]);
+        $this->notifService->notifyLaporanDisetujui($updated);
+        $this->notifService->notifyIfPeriodeSiapVerifikasi($updated);
 
         activity('laporan')
             ->performedOn($updated)
@@ -130,6 +135,7 @@ class LaporanService
             'status_verifikasi' => StatusVerifikasi::RevisionRequested,
             'catatan_revisi'    => trim($catatan),
         ]);
+        $this->notifService->notifyLaporanRevisi($updated);
 
         activity('laporan')
             ->performedOn($updated)

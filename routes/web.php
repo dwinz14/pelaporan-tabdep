@@ -11,6 +11,7 @@ use App\Http\Controllers\Akunting\ExportController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Kepala\KepalaPeriodeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Pic\LaporanController;
 use App\Http\Controllers\Pic\PencatatanController;
 use App\Http\Controllers\ProfileController;
@@ -39,6 +40,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/',         [ProfileController::class, 'index'])->name('index');
         Route::put('/info',     [ProfileController::class, 'updateProfile'])->name('update');
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
+    // ── Notifications (semua role authenticated) ──────────────
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/',              [NotificationController::class, 'index'])->name('index');
+        Route::get('/{id}/read',     [NotificationController::class, 'markAsRead'])->name('read');
+        Route::patch('/read-all',    [NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::delete('/{id}',       [NotificationController::class, 'destroy'])->name('destroy');
+        Route::delete('/',           [NotificationController::class, 'destroyAll'])->name('destroy-all');
     });
 
     // PIC Cabang
