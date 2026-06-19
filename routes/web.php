@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/',         [ProfileController::class, 'index'])->name('index');
         Route::put('/info',     [ProfileController::class, 'updateProfile'])->name('update');
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password');
+    });
     // ── Notifications (semua role authenticated) ──────────────
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/',              [NotificationController::class, 'index'])->name('index');
