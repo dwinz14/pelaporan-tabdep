@@ -20,8 +20,8 @@
                 <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <span class="text-white font-bold text-lg">SI</span>
                 </div>
-                <h1 class="text-white font-semibold text-lg">SI Stok Tab-Dep</h1>
-                <p class="text-slate-400 text-sm mt-0.5">Sistem Informasi Stok Buku Tabungan & Deposito</p>
+                <h1 class="text-white font-semibold text-lg">SI Tab-Dep</h1>
+                <p class="text-slate-400 text-sm mt-0.5">Pelaporan Stok Buku Tabungan & Deposito</p>
             </div>
 
             {{-- Form --}}

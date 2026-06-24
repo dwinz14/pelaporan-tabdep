@@ -8,7 +8,7 @@
     <title>{{ $title ?? config('app.name') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
     @livewireStyles
     <style>
@@ -112,14 +112,14 @@
     </style>
 </head>
 
-<body class="bg-slate-100 font-sans antialiased h-full">
+<body style="background-color: var(--color-bg-canvas);" class="font-sans antialiased h-full">
 
     <div class="flex h-screen overflow-hidden">
 
         {{-- ═══════════════════════════════════
              SIDEBAR
         ═══════════════════════════════════ --}}
-        <aside class="sidebar-gradient relative w-64 flex flex-col flex-shrink-0 shadow-2xl shadow-black/40 z-20">
+        <aside class="sidebar-gradient relative w-64 flex flex-col flex-shrink-0 border-r border-white/[0.06] shadow-2xl shadow-black/40 z-20">
 
             {{-- ── Logo & App Name ── --}}
             <div class="h-16 flex items-center px-5 border-b border-white/[0.06] flex-shrink-0">
@@ -156,10 +156,10 @@
                     @if (isset($currentPeriode) && $currentPeriode)
                         {{-- Input Laporan aktif --}}
                         <a href="{{ route('pic.laporan.edit', $currentPeriode) }}"
-                            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden
+                            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 relative overflow-hidden
                                    {{ request()->routeIs('pic.laporan.*')
-                                       ? 'bg-gradient-to-r from-indigo-500/90 to-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                                       : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
+                                       ? 'bg-gradient-to-r from-indigo-500/90 to-indigo-600 text-white font-semibold shadow-lg shadow-indigo-500/20'
+                                       : 'text-slate-400 font-medium hover:text-white hover:bg-white/5' }}">
                             @if (request()->routeIs('pic.laporan.*'))
                                 <span
                                     class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-white/70 rounded-r-full"></span>
@@ -177,7 +177,7 @@
                             <span class="ml-auto flex items-center gap-1 flex-shrink-0">
                                 <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
                                 <span
-                                    class="text-[10px] text-emerald-400 font-medium hidden group-hover:inline">Live</span>
+                                    class="text-[10px] text-emerald-400 font-semibold hidden group-hover:inline">Live</span>
                             </span>
                         </a>
                     @else
@@ -249,22 +249,22 @@
                 <a href="{{ route('profile.index') }}"
                     class="flex items-center gap-3 mb-3 px-2 py-1.5 rounded-lg
                hover:bg-slate-800 transition-colors group">
-                    <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                        </span>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p
-                            class="text-white text-xs font-medium truncate group-hover:text-indigo-300 transition-colors">
-                            {{ auth()->user()->name }}
-                        </p>
-                        <p class="text-slate-400 text-xs truncate">{{ auth()->user()->roleLabel() }}</p>
-                    </div>
-                    <svg class="w-3 h-3 text-slate-600 group-hover:text-slate-400 flex-shrink-0" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                     <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                         <span class="text-white text-xs font-semibold">
+                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                         </span>
+                     </div>
+                     <div class="min-w-0 flex-1">
+                         <p
+                             class="text-white text-xs font-semibold truncate group-hover:text-indigo-300 transition-colors">
+                             {{ auth()->user()->name }}
+                         </p>
+                         <p class="text-slate-400 text-xs truncate font-medium">{{ auth()->user()->roleLabel() }}</p>
+                     </div>
+                     <svg class="w-3 h-3 text-slate-600 group-hover:text-slate-400 flex-shrink-0" fill="none"
+                         stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                     </svg>
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}">
@@ -286,11 +286,11 @@
         {{-- ═══════════════════════════════════
              MAIN CONTENT AREA
         ═══════════════════════════════════ --}}
-        <div class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+        <div class="flex-1 flex flex-col overflow-hidden" style="background-color: var(--color-bg-canvas);">
 
             {{-- ── Top Header ── --}}
             <header
-                class="header-glass h-16 border-b border-slate-200/80 flex items-center px-6 flex-shrink-0 shadow-sm z-10">
+                class="header-glass h-16 border-b border-[--color-border-default] flex items-center px-6 flex-shrink-0 shadow-sm z-10">
                 {{-- Page Title --}}
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2.5">
@@ -298,11 +298,11 @@
                         <span
                             class="w-1 h-5 bg-gradient-to-b from-indigo-500 to-indigo-600 rounded-full flex-shrink-0"></span>
                         <div>
-                            <h1 class="text-sm font-semibold text-slate-800 leading-snug">
+                            <h1 class="text-sm font-semibold text-[--color-text-primary] leading-snug">
                                 {{ $title ?? 'Dashboard' }}
                             </h1>
                             @isset($subtitle)
-                                <p class="text-[11px] text-slate-400 leading-snug mt-0.5">{{ $subtitle }}</p>
+                                <p class="text-[11px] text-[--color-text-muted] leading-snug mt-0.5">{{ $subtitle }}</p>
                             @endisset
                         </div>
                     </div>
@@ -312,8 +312,8 @@
                 <div class="flex items-center gap-3">
                     {{-- Date badge --}}
                     <div
-                        class="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/80">
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor"
+                        class="hidden sm:flex items-center gap-1.5 text-xs text-[--color-text-muted] bg-[--color-bg-subtle] px-3 py-1.5 rounded-lg border border-[--color-border-default]">
+                        <svg class="w-3.5 h-3.5 text-[--color-text-muted]" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -324,13 +324,13 @@
                     {{-- Cabang badge (PIC only) --}}
                     @if (auth()->user()->isPicCabang() && auth()->user()->cabang)
                         <div
-                            class="flex items-center gap-1.5 text-xs bg-indigo-50 text-indigo-700 border border-indigo-200/80 px-3 py-1.5 rounded-lg font-medium">
+                            class="flex items-center gap-1.5 text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg font-medium">
                             <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
                             </svg>
-                            <span class="font-bold">{{ auth()->user()->cabang->kode_cabang }}</span>
+                            <span class="font-mono font-bold">{{ auth()->user()->cabang->kode_cabang }}</span>
                             <span class="text-indigo-400">—</span>
                             <span>{{ auth()->user()->cabang->nama_cabang }}</span>
                         </div>

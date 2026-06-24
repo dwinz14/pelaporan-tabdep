@@ -6,10 +6,10 @@
 @endphp
 
 <a href="{{ route($route) }}"
-    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden
+    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 relative overflow-hidden
           {{ $isActive
-              ? 'bg-gradient-to-r from-indigo-500/90 to-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-              : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
+              ? 'bg-gradient-to-r from-indigo-500/90 to-indigo-600 text-white font-semibold shadow-lg shadow-indigo-500/20'
+              : 'text-slate-400 font-medium hover:text-white hover:bg-white/5' }}">
 
     {{-- Active left bar --}}
     @if ($isActive)

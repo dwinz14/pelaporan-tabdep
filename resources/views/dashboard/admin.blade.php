@@ -71,7 +71,7 @@
                                     </td>
                                     <td class="px-4 py-2.5 text-right">
                                         <span class="font-mono text-xs font-semibold text-gray-900">
-                                            {{ number_format($row['saldo_tab']) }}
+                                            {{ number_format($row['saldo_tab'], 0, ',', '.') }}
                                         </span>
                                         @if ($row['status_tab'])
                                             <span
@@ -82,7 +82,7 @@
                                     </td>
                                     <td class="px-4 py-2.5 text-right">
                                         <span class="font-mono text-xs font-semibold text-gray-900">
-                                            {{ number_format($row['saldo_dep']) }}
+                                            {{ number_format($row['saldo_dep'], 0, ',', '.') }}
                                         </span>
                                         @if ($row['status_dep'])
                                             <span

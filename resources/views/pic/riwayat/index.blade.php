@@ -134,32 +134,33 @@
                                     <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                         <span class="text-gray-500">Saldo Awal</span>
                                         <span
-                                            class="font-mono text-right font-medium text-gray-800">{{ number_format($tab->saldo_awal) }}</span>
+                                            class="font-mono text-right font-medium text-gray-800">{{ number_format($tab->saldo_awal, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">+ Tambahan</span>
                                         <span
-                                            class="font-mono text-right text-emerald-600">{{ number_format($tab->tambahan_stok) }}</span>
+                                            class="font-mono text-right text-emerald-600">{{ number_format($tab->tambahan_stok, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">− Digunakan</span>
                                         <span
-                                            class="font-mono text-right text-red-500">{{ number_format($tab->jumlah_digunakan) }}</span>
+                                            class="font-mono text-right text-red-500">{{ number_format($tab->jumlah_digunakan, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">− Batal Rusak</span>
                                         <span
-                                            class="font-mono text-right text-red-400">{{ number_format($tab->jml_dibatalkan_rusak) }}</span>
+                                            class="font-mono text-right text-red-400">{{ number_format($tab->jml_dibatalkan_rusak, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">− Batal Hilang</span>
                                         <span
-                                            class="font-mono text-right text-red-400">{{ number_format($tab->jml_dibatalkan_hilang) }}</span>
+                                            class="font-mono text-right text-red-400">{{ number_format($tab->jml_dibatalkan_hilang, 0, ',', '.') }}</span>
 
                                         <span class="font-semibold text-gray-700 pt-2 border-t border-gray-200">Saldo
                                             Akhir</span>
                                         <span
-                                            class="font-mono font-bold text-gray-900 text-right pt-2 border-t border-gray-200">{{ number_format($tab->saldo_akhir) }}</span>
+                                            class="font-mono font-bold text-gray-900 text-right pt-2 border-t border-gray-200">{{ number_format($tab->saldo_akhir, 0, ',', '.') }}</span>
                                     </div>
 
                                     @if ($tab->tgl_submit)
-                                        <p class="text-xs text-gray-400 mt-3 flex items-center gap-1">
+                                        <p
+                                            class="text-xs text-[var(--color-text-secondary)] mt-3 flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -197,32 +198,33 @@
                                     <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                         <span class="text-gray-500">Saldo Awal</span>
                                         <span
-                                            class="font-mono text-right font-medium text-gray-800">{{ number_format($dep->saldo_awal) }}</span>
+                                            class="font-mono text-right font-medium text-gray-800">{{ number_format($dep->saldo_awal, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">+ Tambahan</span>
                                         <span
-                                            class="font-mono text-right text-emerald-600">{{ number_format($dep->tambahan_stok) }}</span>
+                                            class="font-mono text-right text-emerald-600">{{ number_format($dep->tambahan_stok, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">− Digunakan</span>
                                         <span
-                                            class="font-mono text-right text-red-500">{{ number_format($dep->jumlah_digunakan) }}</span>
+                                            class="font-mono text-right text-red-500">{{ number_format($dep->jumlah_digunakan, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">− Batal Rusak</span>
                                         <span
-                                            class="font-mono text-right text-red-400">{{ number_format($dep->jml_dibatalkan_rusak) }}</span>
+                                            class="font-mono text-right text-red-400">{{ number_format($dep->jml_dibatalkan_rusak, 0, ',', '.') }}</span>
 
                                         <span class="text-gray-500">− Batal Hilang</span>
                                         <span
-                                            class="font-mono text-right text-red-400">{{ number_format($dep->jml_dibatalkan_hilang) }}</span>
+                                            class="font-mono text-right text-red-400">{{ number_format($dep->jml_dibatalkan_hilang, 0, ',', '.') }}</span>
 
                                         <span class="font-semibold text-gray-700 pt-2 border-t border-gray-200">Saldo
                                             Akhir</span>
                                         <span
-                                            class="font-mono font-bold text-gray-900 text-right pt-2 border-t border-gray-200">{{ number_format($dep->saldo_akhir) }}</span>
+                                            class="font-mono font-bold text-gray-900 text-right pt-2 border-t border-gray-200">{{ number_format($dep->saldo_akhir, 0, ',', '.') }}</span>
                                     </div>
 
                                     @if ($dep->tgl_submit)
-                                        <p class="text-xs text-gray-400 mt-3 flex items-center gap-1">
+                                        <p
+                                            class="text-xs text-[var(--color-text-secondary)] mt-3 flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -362,29 +362,6 @@
         </div>
 
 
-        {{-- ═══ INFO AKUN ═══ --}}
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900">Informasi Akun</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Detail akun yang dikelola oleh Super Admin</p>
-            </div>
-            <div class="divide-y divide-gray-50">
-                @foreach ([['label' => 'ID Akun', 'value' => '#' . str_pad($user->id, 6, '0', STR_PAD_LEFT)], ['label' => 'Status Akun', 'value' => null, 'badge' => true], ['label' => 'Tanggal Daftar', 'value' => $user->isSelfRegistered() ? $user->registered_at->locale('id')->isoFormat('D MMMM Y, HH:mm') . ' (Mandiri)' : $user->created_at->locale('id')->isoFormat('D MMMM Y, HH:mm') . ' (Oleh Admin)'], ['label' => 'Terakhir Diubah', 'value' => $user->updated_at->locale('id')->isoFormat('D MMMM Y, HH:mm')]] as $item)
-                    <div class="px-5 py-3 flex items-center justify-between">
-                        <p class="text-xs font-medium text-gray-500">{{ $item['label'] }}</p>
-                        @if (!empty($item['badge']))
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                                     {{ $user->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                                {{ $user->is_active ? '● Aktif' : '○ Nonaktif' }}
-                            </span>
-                        @else
-                            <p class="text-xs text-gray-700 font-mono">{{ $item['value'] }}</p>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
-        </div>
 
     </div>
 

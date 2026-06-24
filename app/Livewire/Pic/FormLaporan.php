@@ -117,7 +117,7 @@ class FormLaporan extends Component
             $this->statusTab              = $laporan->status_verifikasi->value;
             $this->catatanRevisiTab       = $laporan->catatan_revisi;
             $this->lastSavedTab           = $laporan->updated_at
-                ->locale('id')->isoFormat('D MMM YYYY, HH:mm');
+                ->locale('id')->isoFormat('D MMM YYYY');
         } else {
             $this->laporanDepId            = $laporan->id;
             $this->saldoAwalDep            = $laporan->saldo_awal;
@@ -128,7 +128,7 @@ class FormLaporan extends Component
             $this->statusDep               = $laporan->status_verifikasi->value;
             $this->catatanRevisiDep        = $laporan->catatan_revisi;
             $this->lastSavedDep            = $laporan->updated_at
-                ->locale('id')->isoFormat('D MMM YYYY, HH:mm');
+                ->locale('id')->isoFormat('D MMM YYYY');
         }
     }
 
@@ -212,7 +212,7 @@ class FormLaporan extends Component
             $this->payloadTab()
         );
 
-        $this->lastSavedTab = now()->locale('id')->isoFormat('D MMM YYYY, HH:mm');
+        $this->lastSavedTab = now()->locale('id')->isoFormat('D MMM YYYY');
         $this->flashSuccess  = 'Catatan tabungan berhasil disimpan.';
     }
 
@@ -228,7 +228,7 @@ class FormLaporan extends Component
             $this->payloadDep()
         );
 
-        $this->lastSavedDep = now()->locale('id')->isoFormat('D MMM YYYY, HH:mm');
+        $this->lastSavedDep = now()->locale('id')->isoFormat('D MMM YYYY');
         $this->flashSuccess  = 'Catatan deposito berhasil disimpan.';
     }
 
@@ -328,7 +328,7 @@ class FormLaporan extends Component
         );
 
         $this->statusTab    = StatusVerifikasi::Submitted->value;
-        $this->lastSavedTab = now()->locale('id')->isoFormat('D MMM YYYY, HH:mm');
+        $this->lastSavedTab = now()->locale('id')->isoFormat('D MMM YYYY');
         $this->flashSuccess = 'Laporan tabungan berhasil disubmit ke akunting.';
     }
 
@@ -340,7 +340,7 @@ class FormLaporan extends Component
         );
 
         $this->statusDep    = StatusVerifikasi::Submitted->value;
-        $this->lastSavedDep = now()->locale('id')->isoFormat('D MMM YYYY, HH:mm');
+        $this->lastSavedDep = now()->locale('id')->isoFormat('D MMM YYYY');
         $this->flashSuccess = 'Laporan deposito berhasil disubmit ke akunting.';
     }
 

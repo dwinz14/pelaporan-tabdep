@@ -274,23 +274,23 @@
                             @if ($tab)
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-gray-700">
-                                    {{ number_format($tab->saldo_awal) }}</td>
+                                    {{ number_format($tab->saldo_awal, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-emerald-600">
-                                    {{ number_format($tab->tambahan_stok) }}</td>
+                                    {{ number_format($tab->tambahan_stok, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-red-500">
-                                    {{ number_format($tab->jumlah_digunakan) }}</td>
+                                    {{ number_format($tab->jumlah_digunakan, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-red-400">
-                                    {{ number_format($tab->jml_dibatalkan_rusak) }}</td>
+                                    {{ number_format($tab->jml_dibatalkan_rusak, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-red-400">
-                                    {{ number_format($tab->jml_dibatalkan_hilang) }}</td>
+                                    {{ number_format($tab->jml_dibatalkan_hilang, 0, ',', '.') }}</td>
                                 <td class="px-3 py-3 text-right border-r border-gray-100">
                                     <span
                                         class="font-mono font-bold text-xs {{ $tab->saldo_akhir == 0 ? 'text-gray-400' : 'text-gray-900' }}">
-                                        {{ number_format($tab->saldo_akhir) }}
+                                        {{ number_format($tab->saldo_akhir, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-3 border-r border-gray-200">
@@ -307,23 +307,23 @@
                             @if ($dep)
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-gray-700">
-                                    {{ number_format($dep->saldo_awal) }}</td>
+                                    {{ number_format($dep->saldo_awal, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-emerald-600">
-                                    {{ number_format($dep->tambahan_stok) }}</td>
+                                    {{ number_format($dep->tambahan_stok, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-red-500">
-                                    {{ number_format($dep->jumlah_digunakan) }}</td>
+                                    {{ number_format($dep->jumlah_digunakan, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-red-400">
-                                    {{ number_format($dep->jml_dibatalkan_rusak) }}</td>
+                                    {{ number_format($dep->jml_dibatalkan_rusak, 0, ',', '.') }}</td>
                                 <td
                                     class="px-3 py-3 text-right font-mono text-xs border-r border-gray-100 text-red-400">
-                                    {{ number_format($dep->jml_dibatalkan_hilang) }}</td>
+                                    {{ number_format($dep->jml_dibatalkan_hilang, 0, ',', '.') }}</td>
                                 <td class="px-3 py-3 text-right border-r border-gray-100">
                                     <span
                                         class="font-mono font-bold text-xs {{ $dep->saldo_akhir == 0 ? 'text-gray-400' : 'text-gray-900' }}">
-                                        {{ number_format($dep->saldo_akhir) }}
+                                        {{ number_format($dep->saldo_akhir, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="px-3 py-3">

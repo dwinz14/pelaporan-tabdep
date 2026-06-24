@@ -1,146 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Google Font: Inter ─── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
+/* ── CSS Variables ──────────────────────── */
 @layer base {
+    :root {
+        --color-bg-canvas: #f4f6fa;
+        --color-bg-surface: #ffffff;
+        --color-bg-subtle: #f8f9fc;
+        --color-bg-inset: #eef1f8;
+        --color-border-default: #e2e7f0;
+        --color-border-strong: #c9d1e3;
+        --color-text-primary: #1a202c;
+        --color-text-secondary: #424c5c;
+        --color-text-muted: #667083;
+        --color-text-disabled: #b0bad0;
+    }
+
     * {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
-
-    html, body {
-        font-family: 'Inter', 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    html,
+    body {
+        font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    }
+    body {
+        background-color: var(--color-bg-canvas);
     }
 
-    /* Custom scrollbar untuk sidebar */
+    /* Custom scrollbar */
     ::-webkit-scrollbar {
         width: 4px;
+        height: 4px;
     }
     ::-webkit-scrollbar-track {
         background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-        background: rgba(148, 163, 184, 0.3);
+        background: rgba(148, 163, 184, 0.35);
         border-radius: 99px;
     }
     ::-webkit-scrollbar-thumb:hover {
-        background: rgba(148, 163, 184, 0.5);
+        background: rgba(148, 163, 184, 0.55);
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
     }
 }
 
 @layer components {
-
-    /* ─── Sidebar Nav Item ─── */
+    /* ── Nav Items ──────────────────────────── */
     .nav-item {
-        @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden;
+        @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+           transition-all duration-200 relative overflow-hidden;
     }
-
     .nav-item-active {
-        @apply bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30;
+        @apply bg-gradient-to-r from-indigo-500/90 to-indigo-600 text-white
+           shadow-lg shadow-indigo-500/20;
     }
-
     .nav-item-inactive {
         @apply text-slate-400 hover:text-white hover:bg-white/5;
     }
-
-    /* Active left-border indicator */
     .nav-item-active::before {
-        content: '';
+        content: "";
         position: absolute;
         left: 0;
-        top: 20%;
+        top: 50%;
+        transform: translateY(-50%);
         height: 60%;
         width: 3px;
-        background: white;
+        background: rgba(255, 255, 255, 0.7);
         border-radius: 0 4px 4px 0;
-        opacity: 0.7;
     }
 
-    /* Icon wrapper */
-    .nav-icon-wrap {
-        @apply w-7 h-7 flex items-center justify-center rounded-md flex-shrink-0 transition-all duration-200;
+    /* ── Status Badges ──────────────────────── */
+    .badge-base {
+        @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border;
+    }
+    .badge-success {
+        @apply badge-base bg-emerald-50 text-emerald-700 border-emerald-200;
+    }
+    .badge-info {
+        @apply badge-base bg-blue-50    text-blue-700    border-blue-200;
+    }
+    .badge-warning {
+        @apply badge-base bg-amber-50   text-amber-700   border-amber-200;
+    }
+    .badge-danger {
+        @apply badge-base bg-red-50     text-red-700     border-red-200;
+    }
+    .badge-revision {
+        @apply badge-base bg-orange-50  text-orange-700  border-orange-200;
+    }
+    .badge-neutral {
+        @apply badge-base bg-slate-100  text-slate-600   border-slate-200;
     }
 
-    .nav-item-active .nav-icon-wrap {
-        @apply bg-white/20;
+    /* ── Buttons ────────────────────────────── */
+    .btn-primary {
+        @apply inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold
+           rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+    .btn-primary-sm {
+        @apply inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs
+           font-semibold rounded-lg hover:bg-indigo-700 transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+    .btn-secondary {
+        @apply inline-flex items-center gap-2 px-4 py-2 border border-[--color-border-default]
+           bg-white text-sm font-medium text-[--color-text-secondary] rounded-lg
+           hover:bg-[--color-bg-subtle] hover:border-[--color-border-strong]
+           transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+    }
+    .btn-danger {
+        @apply inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-semibold
+           rounded-lg hover:bg-red-700 transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
     }
 
-    .nav-item-inactive .nav-icon-wrap {
-        @apply bg-white/5 group-hover:bg-white/10;
-    }
-
-    /* ─── Flash Message animations ─── */
+    /* ── Flash message ──────────────────────── */
     .flash-enter {
-        animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: flashIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-
-    .flash-dismiss {
-        animation: slideUp 0.3s ease forwards;
-    }
-
-    /* ─── Sidebar Divider label ─── */
-    .sidebar-section-label {
-        @apply text-[10px] font-semibold text-slate-500 uppercase tracking-[0.12em] px-3 pt-5 pb-1.5;
-    }
-
-    /* ─── Breadcrumb like header ─── */
-    .page-header-pill {
-        @apply text-xs px-3 py-1 rounded-full font-medium;
+    .flash-out {
+        animation: flashOut 0.25s ease forwards;
     }
 }
 
 @layer utilities {
-    /* Glassmorphism sidebar bottom */
-    .glass-bottom {
-        background: linear-gradient(to top, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.6));
-        backdrop-filter: blur(8px);
-    }
-
-    /* Smooth pulse glow for active indicator dot */
-    .dot-pulse {
-        animation: pulseDot 2s ease-in-out infinite;
-    }
-
-    /* Sidebar gradient background */
     .sidebar-bg {
-        background: linear-gradient(180deg, #0f172a 0%, #0d1526 60%, #0b1120 100%);
+        background: linear-gradient(
+            180deg,
+            #0f172a 0%,
+            #0d1526 60%,
+            #0b1120 100%
+        );
     }
-
-    /* Active item shine effect */
-    .shine::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
-        border-radius: inherit;
+    .header-glass {
+        background: rgba(255, 255, 255, 0.97);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    .font-mono-data {
+        @apply font-mono text-right;
     }
 }
 
-/* ─── Keyframes ─── */
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-12px); }
-    to   { opacity: 1; transform: translateY(0); }
+/* ── Keyframes ──────────────────────────── */
+@keyframes pageIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
-
-@keyframes slideUp {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(-12px); }
+@keyframes flashIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
-
+@keyframes flashOut {
+    to {
+        opacity: 0;
+        transform: translateY(-6px);
+        max-height: 0;
+        padding: 0;
+        margin: 0;
+    }
+}
 @keyframes pulseDot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.5; transform: scale(0.85); }
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
 }
 
-/* ─── Smooth page transition ─── */
-main {
-    animation: fadeIn 0.25s ease-out;
+.page-animate {
+    animation: pageIn 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
+.dot-pulse {
+    animation: pulseDot 2s ease-in-out infinite;
 }
