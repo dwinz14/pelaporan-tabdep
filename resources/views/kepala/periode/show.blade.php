@@ -32,7 +32,7 @@
                     <p class="text-xs text-gray-500">Diverifikasi Final Oleh</p>
                     <p class="font-semibold text-gray-900 text-sm">
                         {{ $periode->verifiedByOperasional?->name ?? '—' }}
-                        · {{ $periode->tgl_verifikasi_operasional?->locale('id')->isoFormat('D MMM Y, HH:mm') }}
+                        · {{ $periode->tgl_verifikasi_operasional?->locale('id')->isoFormat('D MMM Y') }}
                     </p>
                 </div>
             @endif

@@ -15,6 +15,15 @@ class PivotPeriode extends Component
 {
     public PeriodeLaporan $periode;
 
+    // ─── Search ───────────────────────────────────────────────
+    public string $search = '';
+
+    // ─── Modal Approve ────────────────────────────────────────
+    public bool    $showApproveModal = false;
+    public ?int    $approveLaporanId = null;
+    public string  $approveJenis     = '';
+    public string  $approveCabang    = '';
+
     // ─── Modal Revisi ─────────────────────────────────────────
     public bool    $showRevisiModal = false;
     public ?int    $revisiLaporanId = null;
@@ -45,14 +54,22 @@ class PivotPeriode extends Component
             ->orderBy('kode_cabang')
             ->get();
 
-        return $cabangs->map(function ($cabang) use ($laporans) {
-            $group = $laporans->get($cabang->id, collect());
-            return [
-                'cabang'   => $cabang,
-                'tabungan' => $group->first(fn($l) => $l->jenis === JenisLaporan::Tabungan),
-                'deposito' => $group->first(fn($l) => $l->jenis === JenisLaporan::Deposito),
-            ];
-        });
+        return $cabangs
+            ->filter(function ($cabang) {
+                if (!trim($this->search)) return true;
+                $q = strtolower($this->search);
+                return str_contains(strtolower($cabang->kode_cabang), $q)
+                    || str_contains(strtolower($cabang->nama_cabang), $q);
+            })
+            ->values()
+            ->map(function ($cabang) use ($laporans) {
+                $group = $laporans->get($cabang->id, collect());
+                return [
+                    'cabang'   => $cabang,
+                    'tabungan' => $group->first(fn($l) => $l->jenis === JenisLaporan::Tabungan),
+                    'deposito' => $group->first(fn($l) => $l->jenis === JenisLaporan::Deposito),
+                ];
+            });
     }
 
     #[Computed(cache: false)]
@@ -70,6 +87,64 @@ class PivotPeriode extends Component
         $pct       = $total > 0 ? round($verified / $total * 100) : 0;
 
         return compact('total', 'verified', 'submitted', 'revision', 'draft', 'pct');
+    }
+
+    #[Computed(cache: false)]
+    public function columnTotals(): array
+    {
+        $totals = [
+            'tab_saldo_awal' => 0, 'tab_tambahan' => 0, 'tab_digunakan' => 0,
+            'tab_rusak' => 0, 'tab_hilang' => 0, 'tab_saldo_akhir' => 0,
+            'dep_saldo_awal' => 0, 'dep_tambahan' => 0, 'dep_digunakan' => 0,
+            'dep_rusak' => 0, 'dep_hilang' => 0, 'dep_saldo_akhir' => 0,
+        ];
+
+        foreach ($this->pivotData as $row) {
+            if ($tab = $row['tabungan']) {
+                $totals['tab_saldo_awal']  += $tab->saldo_awal;
+                $totals['tab_tambahan']    += $tab->tambahan_stok;
+                $totals['tab_digunakan']   += $tab->jumlah_digunakan;
+                $totals['tab_rusak']       += $tab->jml_dibatalkan_rusak;
+                $totals['tab_hilang']      += $tab->jml_dibatalkan_hilang;
+                $totals['tab_saldo_akhir'] += $tab->saldo_akhir;
+            }
+            if ($dep = $row['deposito']) {
+                $totals['dep_saldo_awal']  += $dep->saldo_awal;
+                $totals['dep_tambahan']    += $dep->tambahan_stok;
+                $totals['dep_digunakan']   += $dep->jumlah_digunakan;
+                $totals['dep_rusak']       += $dep->jml_dibatalkan_rusak;
+                $totals['dep_hilang']      += $dep->jml_dibatalkan_hilang;
+                $totals['dep_saldo_akhir'] += $dep->saldo_akhir;
+            }
+        }
+
+        return $totals;
+    }
+
+    public function openApprove(int $laporanId): void
+    {
+        $laporan = Laporan::with('cabang')->findOrFail($laporanId);
+
+        $this->approveLaporanId = $laporanId;
+        $this->approveJenis     = $laporan->jenis->label();
+        $this->approveCabang    = $laporan->cabang->kode_cabang . ' — ' . $laporan->cabang->nama_cabang;
+        $this->showApproveModal = true;
+    }
+
+    public function closeApprove(): void
+    {
+        $this->showApproveModal = false;
+        $this->approveLaporanId = null;
+        $this->approveJenis     = '';
+        $this->approveCabang    = '';
+    }
+
+    public function confirmApprove(): void
+    {
+        if (!$this->approveLaporanId) return;
+
+        $this->approve($this->approveLaporanId);
+        $this->closeApprove();
     }
 
     // ─── Actions ──────────────────────────────────────────────
