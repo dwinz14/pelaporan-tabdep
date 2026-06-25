@@ -1,10 +1,10 @@
 import "./bootstrap";
 
-// import Alpine from 'alpinejs';
+import Alpine from 'alpinejs';
 
-// window.Alpine = Alpine;
+window.Alpine = Alpine;
 
-// Alpine.start();
+Alpine.start();
 
 /**
  * Auto-format input NIK: huruf otomatis kapital, hanya angka setelah 2 karakter awal,

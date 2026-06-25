@@ -13,7 +13,7 @@ class NotificationController extends Controller
     {
         $notifications = auth()->user()
             ->notifications()
-            ->paginate(20);
+            ->paginate(10);
 
         return view('notifications.index', [
             'title'         => 'Notifikasi',

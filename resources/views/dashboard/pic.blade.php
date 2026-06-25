@@ -72,7 +72,7 @@
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <div class="z-10">
+                <div>
                     <p class="text-base font-bold text-white">Input Laporan Wajib</p>
                     <p class="text-xs text-indigo-100 mt-0.5">Selesaikan pelaporan stok periode ini</p>
                 </div>
@@ -93,7 +93,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
             @php $tab = $laporanAktif->get('tabungan'); @endphp
             <div
-                class="bg-white rounded-2xl border {{ $tab?->status_verifikasi === \App\Enums\StatusVerifikasi::VerifiedAccounting ? 'border-emerald-300 bg-emerald-50/10' : 'border-[--color-border-default]' }} shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                class="bg-white rounded-2xl border border-[--color-border-default] shadow-xl overflow-hidden border-t-4 border-t-indigo-600 {{ $tab?->status_verifikasi === \App\Enums\StatusVerifikasi::VerifiedAccounting ? 'border-emerald-300 bg-emerald-50/10' : 'border-[--color-border-default]' }} shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <div class="px-5 py-4 {{ $tab ? 'border-b border-slate-100' : '' }} flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <div
@@ -157,7 +157,7 @@
 
             @php $dep = $laporanAktif->get('deposito'); @endphp
             <div
-                class="bg-white rounded-2xl border {{ $dep?->status_verifikasi === \App\Enums\StatusVerifikasi::VerifiedAccounting ? 'border-emerald-300 bg-emerald-50/10' : 'border-[--color-border-default]' }} shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                class="bg-white rounded-2xl border border-[--color-border-default] shadow-xl overflow-hidden border-t-4 border-t-indigo-600 {{ $dep?->status_verifikasi === \App\Enums\StatusVerifikasi::VerifiedAccounting ? 'border-emerald-300 bg-emerald-50/10' : 'border-[--color-border-default]' }} shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <div class="px-5 py-4 {{ $dep ? 'border-b border-slate-100' : '' }} flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <div
