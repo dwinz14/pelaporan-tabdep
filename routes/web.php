@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuditController;
 use App\Http\Controllers\Admin\CabangController;
+use App\Http\Controllers\Admin\DatabaseMaintenanceController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\PeriodeController;
 use App\Http\Controllers\Admin\RegistrasiController;
@@ -123,6 +124,19 @@ Route::middleware('auth')->group(function () {
             // import
             Route::get('/import',  [ImportController::class, 'index'])->name('import.index');
             Route::post('/import', [ImportController::class, 'store'])->name('import.store');
+
+            // database maintenance
+            Route::prefix('database')->name('database.')->group(function () {
+                Route::get('/',                          [DatabaseMaintenanceController::class, 'index'])->name('index');
+                Route::post('/backup',                   [DatabaseMaintenanceController::class, 'backup'])->name('backup');
+                Route::get('/backup/{filename}/download', [DatabaseMaintenanceController::class, 'download'])->name('download')
+                    ->where('filename', '[a-zA-Z0-9._-]+');
+                Route::delete('/backup/{filename}',      [DatabaseMaintenanceController::class, 'deleteBackup'])->name('delete-backup')
+                    ->where('filename', '[a-zA-Z0-9._-]+');
+                Route::post('/restore/upload',           [DatabaseMaintenanceController::class, 'uploadRestore'])->name('restore.upload');
+                Route::post('/restore/confirm',          [DatabaseMaintenanceController::class, 'confirmRestore'])->name('restore.confirm');
+                Route::post('/restore/dismiss',          [DatabaseMaintenanceController::class, 'dismissRestore'])->name('restore.dismiss');
+            });
         });
 });
 

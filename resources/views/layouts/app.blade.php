@@ -8,7 +8,9 @@
     <title>{{ $title ?? config('app.name') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     @vite(['resources/css/app.css'])
     @livewireStyles
     <style>
@@ -119,7 +121,8 @@
         {{-- ═══════════════════════════════════
              SIDEBAR
         ═══════════════════════════════════ --}}
-        <aside class="sidebar-gradient relative w-64 flex flex-col flex-shrink-0 border-r border-white/[0.06] shadow-2xl shadow-black/40 z-20">
+        <aside
+            class="sidebar-gradient relative w-64 flex flex-col flex-shrink-0 border-r border-white/[0.06] shadow-2xl shadow-black/40 z-20">
 
             {{-- ── Logo & App Name ── --}}
             <div class="h-16 flex items-center px-5 border-b border-white/[0.06] flex-shrink-0">
@@ -240,6 +243,8 @@
                     <x-sidebar-divider label="Sistem" />
                     <x-sidebar-item route="admin.audit.index" icon="document-text" label="Audit Trail"
                         activeOn="admin.audit.*" />
+                    <x-sidebar-item route="admin.database.index" icon="database" label="Database"
+                        activeOn="admin.database.*" />
                 @endif
 
             </nav>
@@ -249,22 +254,22 @@
                 <a href="{{ route('profile.index') }}"
                     class="flex items-center gap-3 mb-3 px-2 py-1.5 rounded-lg
                hover:bg-slate-800 transition-colors group">
-                     <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                         <span class="text-white text-xs font-semibold">
-                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                         </span>
-                     </div>
-                     <div class="min-w-0 flex-1">
-                         <p
-                             class="text-white text-xs font-semibold truncate group-hover:text-indigo-300 transition-colors">
-                             {{ auth()->user()->name }}
-                         </p>
-                         <p class="text-slate-400 text-xs truncate font-medium">{{ auth()->user()->roleLabel() }}</p>
-                     </div>
-                     <svg class="w-3 h-3 text-slate-600 group-hover:text-slate-400 flex-shrink-0" fill="none"
-                         stroke="currentColor" viewBox="0 0 24 24">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                     </svg>
+                    <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs font-semibold">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                        </span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p
+                            class="text-white text-xs font-semibold truncate group-hover:text-indigo-300 transition-colors">
+                            {{ auth()->user()->name }}
+                        </p>
+                        <p class="text-slate-400 text-xs truncate font-medium">{{ auth()->user()->roleLabel() }}</p>
+                    </div>
+                    <svg class="w-3 h-3 text-slate-600 group-hover:text-slate-400 flex-shrink-0" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}">
@@ -302,7 +307,8 @@
                                 {{ $title ?? 'Dashboard' }}
                             </h1>
                             @isset($subtitle)
-                                <p class="text-[11px] text-[--color-text-muted] leading-snug mt-0.5">{{ $subtitle }}</p>
+                                <p class="text-[11px] text-[--color-text-muted] leading-snug mt-0.5">{{ $subtitle }}
+                                </p>
                             @endisset
                         </div>
                     </div>
