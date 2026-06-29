@@ -25,7 +25,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['nullable', 'email', 'max:100'],
-            'password' => ['required', 'string', 'min:6', new StrongPassword, 'confirmed'],
+            'password' => ['nullable', 'string', 'min:6', new StrongPassword, 'confirmed'],
             'role'     => ['required', Rule::enum(UserRole::class)],
             'id_cabang' => [
                 Rule::requiredIf(fn() => $this->input('role') === UserRole::PicCabang->value),
