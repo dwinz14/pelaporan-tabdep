@@ -617,11 +617,11 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
                             Keterangan <span
-                                class="text-slate-400 font-medium normal-case tracking-normal">(Opsional)</span>
+                                class="text-slate-500 font-medium normal-case tracking-normal">(Opsional)</span>
                         </label>
                         <input type="text" wire:model="formKeterangan" maxlength="255"
                             placeholder="Contoh: Nasabah Budi, No Seri ABC..."
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
                     </div>
                 </div>
 

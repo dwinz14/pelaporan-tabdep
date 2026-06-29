@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? config('app.name') }}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -127,14 +128,21 @@
             {{-- ── Logo & App Name ── --}}
             <div class="h-16 flex items-center px-5 border-b border-white/[0.06] flex-shrink-0">
                 {{-- Logo badge --}}
-                <div class="relative w-9 h-9 flex-shrink-0 mr-3">
+                <div class="relative w-10 h-10 flex-shrink-0 mr-3">
                     <div
-                        class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/40">
-                        <span class="text-white text-xs font-bold tracking-tight">SI</span>
+                        class="flex items-center justify-center w-10 h-10 rounded-2xl
+               bg-white/10 backdrop-blur-xl border border-white/20
+               shadow-lg shadow-black/20">
+
+                        <x-application-logo class="w-6 h-6 text-white" />
+
                     </div>
+
                     {{-- Status dot --}}
                     <span
-                        class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-900 animate-pulse"></span>
+                        class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5
+               bg-emerald-400 rounded-full border-2 border-slate-900 animate-pulse">
+                    </span>
                 </div>
                 <div class="min-w-0">
                     <p class="text-white text-sm font-semibold leading-snug tracking-tight">SI Tab-Dep</p>
