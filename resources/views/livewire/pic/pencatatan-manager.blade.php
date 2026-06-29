@@ -1,106 +1,127 @@
-<div>
+<div class="max-w-6xl mx-auto pb-10">
 
-    {{-- ═══ FLASH ═══ --}}
-    @if ($flashSuccess)
-        <div x-data="{ show: true }" x-show="show" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 4000)"
-            class="flash-animate mb-5 flex items-start gap-3 p-4 bg-white border border-emerald-200 rounded-xl shadow-sm shadow-emerald-100/50"
-            role="alert">
-            <span class="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-emerald-100 rounded-lg">
-                <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clip-rule="evenodd" />
-                </svg>
-            </span>
-            <div class="flex-1 min-w-0">
-                <p class="font-semibold text-emerald-700 text-xs uppercase tracking-wide mb-0.5">Berhasil</p>
-                <p class="text-slate-600">{{ $flashSuccess }}</p>
+    {{-- ═══ FLASH MESSAGES (Modern Toast Style) ═══ --}}
+    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+        @if ($flashSuccess)
+            <div x-data="{ show: true }" x-show="show" x-transition:enter="transform ease-out duration-300 transition"
+                x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 4000)"
+                class="pointer-events-auto w-full bg-white border-l-4 border-emerald-500 rounded-xl shadow-xl overflow-hidden"
+                role="alert">
+                <div class="p-4 flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 w-0 flex-1 pt-0.5">
+                        <p class="text-sm font-bold text-slate-900">Berhasil</p>
+                        <p class="mt-1 text-sm text-slate-500">{{ $flashSuccess }}</p>
+                    </div>
+                    <div class="ml-4 flex-shrink-0 flex">
+                        <button @click="show = false"
+                            class="bg-white rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button @click="show = false"
-                class="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded-md hover:bg-slate-100">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-    @endif
+        @endif
 
-    @if ($flashError)
-        <div x-data="{ show: true }" x-show="show" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 6000)"
-            class="flash-animate mb-5 flex items-start gap-3 p-4 bg-white border border-red-200 rounded-xl shadow-sm shadow-red-100/50"
-            role="alert">
-            <span class="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-red-100 rounded-lg">
-                <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                </svg>
-            </span>
-            <div class="flex-1 min-w-0">
-                <p class="font-semibold text-red-700 text-xs uppercase tracking-wide mb-0.5">Terjadi Kesalahan</p>
-                <p class="text-slate-600">{{ $flashError }}</p>
+        @if ($flashError)
+            <div x-data="{ show: true }" x-show="show" x-transition:enter="transform ease-out duration-300 transition"
+                x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 6000)"
+                class="pointer-events-auto w-full bg-white border-l-4 border-rose-500 rounded-xl shadow-xl overflow-hidden"
+                role="alert">
+                <div class="p-4 flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 w-0 flex-1 pt-0.5">
+                        <p class="text-sm font-bold text-slate-900">Terjadi Kesalahan</p>
+                        <p class="mt-1 text-sm text-slate-500">{{ $flashError }}</p>
+                    </div>
+                    <div class="ml-4 flex-shrink-0 flex">
+                        <button @click="show = false"
+                            class="bg-white rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button @click="show = false"
-                class="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded-md hover:bg-slate-100">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-    @endif
+        @endif
+    </div>
 
-    {{-- ═══ STOK REAL-TIME MONITORING (ACCORDION) ═══ --}}
+    {{-- ═══ STOK REAL-TIME MONITORING (DASHBOARD WIDGET STYLE) ═══ --}}
     <div x-data="{ expanded: false }"
-        class="mb-6 bg-white rounded-xl border border-[--color-border-default] shadow-lg overflow-hidden">
+        class="mb-8 bg-slate-900 rounded-3xl shadow-xl shadow-slate-900/10 overflow-hidden relative border border-slate-800">
+        {{-- Decorative background glow --}}
+        <div class="absolute top-0 left-1/4 w-96 h-32 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
         {{-- Header / Summary View --}}
         <div @click="expanded = !expanded"
-            class="px-6 py-4 cursor-pointer hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
+            class="px-6 py-5 cursor-pointer hover:bg-slate-800/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 select-none">
+            <div class="flex items-center gap-4">
                 <div
-                    class="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-[--color-text-primary] flex items-center gap-2">
-                        Stok Real-Time Saat Ini
+                    <h3 class="text-base font-bold text-white flex items-center gap-2 tracking-wide">
+                        Estimasi Stok Real-Time
                     </h3>
-                    <p class="text-xs text-[--color-text-muted] mt-0.5">Klik untuk melihat detail</p>
+                    <p class="text-sm text-slate-400 mt-0.5">Saldo awal laporan terakhir ± pencatatan bulan ini</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-5 sm:gap-6 ml-12 md:ml-0">
+            <div class="flex items-center gap-6 ml-16 md:ml-0">
                 {{-- Quick Summary Tabungan --}}
                 @php $rtTab = $this->stokRealtime['tabungan'] ?? null; @endphp
                 <div class="text-right">
-                    <p class="text-[10px] uppercase tracking-wider text-[--color-text-muted] font-bold mb-0.5">Tabungan
+                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Tabungan</p>
+                    <p class="text-2xl font-bold text-white font-mono leading-none">
+                        {{ $rtTab ? number_format($rtTab['stok_sekarang'], 0, ',', '.') : '-' }}
                     </p>
-                    <p class="text-xl font-bold text-indigo-600 font-mono">
-                        {{ $rtTab ? number_format($rtTab['stok_sekarang'], 0, ',', '.') : '-' }}</p>
                 </div>
 
-                <div class="w-px h-8 bg-slate-200"></div>
+                <div class="w-px h-10 bg-slate-700"></div>
 
                 {{-- Quick Summary Deposito --}}
                 @php $rtDep = $this->stokRealtime['deposito'] ?? null; @endphp
                 <div class="text-right">
-                    <p class="text-[10px] uppercase tracking-wider text-[--color-text-muted] font-bold mb-0.5">Deposito
+                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Deposito</p>
+                    <p class="text-2xl font-bold text-white font-mono leading-none">
+                        {{ $rtDep ? number_format($rtDep['stok_sekarang'], 0, ',', '.') : '-' }}
                     </p>
-                    <p class="text-xl font-bold text-slate-700 font-mono">
-                        {{ $rtDep ? number_format($rtDep['stok_sekarang'], 0, ',', '.') : '-' }}</p>
                 </div>
 
-                <div class="ml-2 text-slate-400">
-                    <svg class="w-5 h-5 transform transition-transform duration-200" :class="{ 'rotate-180': expanded }"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div
+                    class="ml-2 w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+                    <svg class="w-5 h-5 transform transition-transform duration-300"
+                        :class="{ 'rotate-180 text-white': expanded }" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
@@ -109,96 +130,115 @@
 
         {{-- Expanded Detail View --}}
         <div x-show="expanded" x-collapse>
-            <div class="p-6 border-t border-[--color-border-default] bg-slate-50">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    @foreach (['tabungan' => 'Tabungan', 'deposito' => 'Deposito'] as $jenisKey => $jenisLabel)
-                        @php $rt = $this->stokRealtime[$jenisKey] ?? null; @endphp
+            <div class="p-6 pt-0 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-2">
+                    @foreach (['tabungan' => 'Buku Tabungan', 'deposito' => 'Bilyet Deposito'] as $jenisKey => $jenisLabel)
+                        @php
+                            $rt = $this->stokRealtime[$jenisKey] ?? null;
+                            $isTab = $jenisKey === 'tabungan';
+                        @endphp
 
-                        <div class="bg-white rounded-lg border border-[--color-border-default] overflow-hidden">
-                            {{-- ── Header ── --}}
+                        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden flex flex-col">
+                            {{-- Card Header --}}
                             <div
-                                class="px-4 py-3 {{ $jenisKey === 'tabungan' ? 'bg-indigo-50 border-b border-indigo-100' : 'bg-slate-100 border-b border-slate-200' }} flex items-center justify-between">
+                                class="px-5 py-4 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <p
-                                        class="text-sm font-bold {{ $jenisKey === 'tabungan' ? 'text-indigo-900' : 'text-slate-800' }} tracking-wide">
-                                        {{ $jenisLabel }}</p>
+                                    <div class="w-2 h-2 rounded-full {{ $isTab ? 'bg-indigo-400' : 'bg-slate-400' }}">
+                                    </div>
+                                    <p class="text-sm font-bold text-white tracking-wide">{{ $jenisLabel }}</p>
                                 </div>
                                 @if ($rt && $rt['lock_date'])
                                     <span
-                                        class="flex items-center gap-1 text-xs font-medium {{ $jenisKey === 'tabungan' ? 'text-indigo-600' : 'text-slate-600' }}">
-                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        class="flex items-center gap-1.5 text-xs font-medium text-slate-400 bg-slate-900 px-2 py-1 rounded-md border border-slate-700/50">
+                                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor"
+                                            viewBox="0 0 20 20">
                                             <path fill-rule="evenodd"
-                                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                                 clip-rule="evenodd" />
                                         </svg>
-                                        Periode Terakhir {{ $rt['lock_date'] }}
+                                        Saldo {{ $rt['lock_date'] }}
                                     </span>
                                 @else
                                     <span
-                                        class="text-[10px] uppercase font-bold tracking-wider text-[--color-text-muted]">Belum
-                                        disubmit</span>
+                                        class="text-[10px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 px-2 py-1 rounded border border-amber-400/20">Belum
+                                        Disubmit</span>
                                 @endif
                             </div>
 
                             @if ($rt)
-                                <div class="p-4">
-                                    <div class="flex items-center justify-between mb-4">
-                                        <div>
-                                            <p
-                                                class="text-[10px] uppercase tracking-wider text-[--color-text-muted] font-bold mb-0.5">
-                                                Saldo Awal</p>
-                                            <p class="text-sm font-bold font-mono text-[--color-text-secondary]">
-                                                {{ number_format($rt['saldo_base'], 0, ',', '.') }}
-                                            </p>
+                                <div class="p-5 flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-end justify-between mb-5">
+                                            <div>
+                                                <p
+                                                    class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">
+                                                    Saldo Laporan Terakhir</p>
+                                                <p class="text-lg font-bold font-mono text-slate-200">
+                                                    {{ number_format($rt['saldo_base'], 0, ',', '.') }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p
+                                                    class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">
+                                                    Estimasi Saat Ini</p>
+                                                <p
+                                                    class="text-xl font-bold font-mono {{ $isTab ? 'text-indigo-400' : 'text-white' }}">
+                                                    {{ number_format($rt['stok_sekarang'], 0, ',', '.') }}</p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Mutasi Bulan Ini --}}
+                                        <div
+                                            class="grid grid-cols-3 gap-0 bg-slate-900 rounded-xl border border-slate-700/50 p-1 mb-5">
+                                            <div class="text-center py-2 px-1 rounded-lg bg-slate-800/50">
+                                                <p
+                                                    class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">
+                                                    Masuk</p>
+                                                <p class="text-sm font-bold font-mono text-emerald-400">
+                                                    +{{ number_format($rt['masuk_bulan_ini'], 0, ',', '.') }}</p>
+                                            </div>
+                                            <div class="text-center py-2 px-1 border-x border-slate-700/50">
+                                                <p
+                                                    class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">
+                                                    Keluar</p>
+                                                <p class="text-sm font-bold font-mono text-rose-400">
+                                                    -{{ number_format($rt['keluar_bulan_ini'], 0, ',', '.') }}</p>
+                                            </div>
+                                            <div class="text-center py-2 px-1">
+                                                <p
+                                                    class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">
+                                                    Net</p>
+                                                <p
+                                                    class="text-sm font-bold font-mono {{ $rt['net_bulan_ini'] >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+                                                    {{ $rt['net_bulan_ini'] >= 0 ? '+' : '' }}{{ number_format($rt['net_bulan_ini'], 0, ',', '.') }}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {{-- ── Bulan Ini Grid ── --}}
-                                    <div
-                                        class="grid grid-cols-3 gap-2 bg-[--color-bg-subtle] rounded-md border border-[--color-border-default] p-2.5 mb-4">
-                                        <div class="text-center">
-                                            <p
-                                                class="text-[10px] uppercase tracking-wider text-[--color-text-muted] font-semibold">
-                                                Masuk</p>
-                                            <p class="text-xs font-bold font-mono text-emerald-600">
-                                                +{{ number_format($rt['masuk_bulan_ini'], 0, ',', '.') }}</p>
-                                        </div>
-                                        <div class="text-center border-x border-[--color-border-default]">
-                                            <p
-                                                class="text-[10px] uppercase tracking-wider text-[--color-text-muted] font-semibold">
-                                                Keluar</p>
-                                            <p class="text-xs font-bold font-mono text-red-500">
-                                                -{{ number_format($rt['keluar_bulan_ini'], 0, ',', '.') }}</p>
-                                        </div>
-                                        <div class="text-center">
-                                            <p
-                                                class="text-[10px] uppercase tracking-wider text-[--color-text-muted] font-semibold">
-                                                Net</p>
-                                            <p
-                                                class="text-xs font-bold font-mono {{ $rt['net_bulan_ini'] >= 0 ? 'text-emerald-600' : 'text-red-500' }}">
-                                                {{ $rt['net_bulan_ini'] >= 0 ? '+' : '' }}{{ number_format($rt['net_bulan_ini'], 0, ',', '.') }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {{-- ── Perubahan Terakhir (mini-timeline) ── --}}
+                                    {{-- Riwayat Terakhir --}}
                                     @if (count($rt['perubahan_terakhir']) > 0)
                                         <div>
                                             <p
-                                                class="text-[10px] uppercase tracking-wider text-[--color-text-secondary] font-bold mb-2">
-                                                Riwayat Terbaru</p>
-                                            <div class="space-y-1">
+                                                class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 flex items-center gap-1.5">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Riwayat Terakhir
+                                            </p>
+                                            <div class="space-y-1.5">
                                                 @foreach (array_slice($rt['perubahan_terakhir'], 0, 3) as $ch)
                                                     <div
-                                                        class="flex items-center gap-2 text-xs py-1 px-1.5 rounded bg-white border border-slate-100">
+                                                        class="flex items-center gap-3 text-xs py-1.5 px-3 rounded-lg bg-slate-900 border border-slate-700/50">
                                                         <span
-                                                            class="text-[--color-text-muted] font-mono text-[10px] flex-shrink-0">{{ $ch['tanggal'] }}</span>
+                                                            class="text-slate-500 font-mono text-[10px] flex-shrink-0">{{ $ch['tanggal'] }}</span>
                                                         <span
-                                                            class="font-bold font-mono text-[10px] w-10 text-right flex-shrink-0 {{ $ch['is_masuk'] ? 'text-emerald-600' : 'text-red-500' }}">
+                                                            class="font-bold font-mono text-[11px] w-12 text-right flex-shrink-0 {{ $ch['is_masuk'] ? 'text-emerald-400' : 'text-rose-400' }}">
                                                             {{ $ch['is_masuk'] ? '+' : '-' }}{{ number_format($ch['jumlah'], 0, ',', '.') }}
                                                         </span>
-                                                        <span
-                                                            class="text-[10px] font-medium text-[--color-text-secondary] truncate">
+                                                        <span class="text-[11px] font-medium text-slate-300 truncate">
                                                             {{ $ch['tipe'] }}
                                                         </span>
                                                     </div>
@@ -208,24 +248,28 @@
                                     @endif
                                 </div>
 
-                                {{-- ── Footer: pencatatan belum lapor ── --}}
+                                {{-- Peringatan Belum Lapor --}}
                                 @if ($rt['pencatatan_count'] > 0)
-                                    <div class="px-4 py-2 bg-amber-50 border-t border-amber-100">
-                                        <p
-                                            class="text-[10px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor"
-                                                viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd"
-                                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                                    clip-rule="evenodd" />
+                                    <div class="px-5 py-3 bg-indigo-900/30 border-t border-indigo-500/20">
+                                        <p class="text-xs font-medium text-indigo-300 flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            {{ $rt['pencatatan_count'] }} pencatatan tertunda
+                                            Ada <strong class="text-white">{{ $rt['pencatatan_count'] }}</strong> data
+                                            siap disinkronisasi ke laporan.
                                         </p>
                                     </div>
                                 @endif
                             @else
-                                <div class="px-4 py-8 text-center bg-white">
-                                    <p class="text-xs font-medium text-[--color-text-secondary]">Belum ada data</p>
+                                <div class="p-8 text-center flex-1 flex flex-col items-center justify-center">
+                                    <svg class="w-8 h-8 text-slate-600 mb-2" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    </svg>
+                                    <p class="text-sm font-medium text-slate-400">Belum ada data awal</p>
                                 </div>
                             @endif
                         </div>
@@ -234,197 +278,192 @@
             </div>
         </div>
     </div>
-    {{-- ═══ LOG PENCATATAN (FOKUS UTAMA) ═══ --}}
-    <div
-        class="mb-8 bg-[--color-bg-surface] rounded-xl border border-[--color-border-default] shadow-xl overflow-hidden border-t-4 border-t-indigo-600">
 
-        {{-- Header + Tambah --}}
+
+    {{-- ═══ LOG PENCATATAN (MAIN TABLE AREA) ═══ --}}
+    <div
+        class="bg-white rounded-3xl shadow-xl border border-[--color-border-default] shadow-xl overflow-hidden border-t-4 border-t-indigo-600 relative">
+
+        {{-- Header Bar --}}
         <div
-            class="px-6 py-5 border-b border-[--color-border-default] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            class="px-8 py-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
             <div>
-                <h2 class="text-lg font-bold text-[--color-text-primary] flex items-center gap-2">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                    </div>
-                    Pencatatan Penggunaan
+                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    Buku Jurnal Pencatatan
                 </h2>
-                <p class="text-sm text-[--color-text-muted] mt-1">Catat transaksi penggunaan buku tabungan dan bilyet
-                    deposito di sini.</p>
+                <p class="text-sm text-slate-500 mt-1">Kelola dan pantau seluruh transaksi fisik secara mendetail.</p>
             </div>
             <button type="button" wire:click="openCreateForm"
-                class="btn-primary shadow-sm hover:shadow transition-shadow">
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200 focus:ring-4 focus:ring-indigo-100 transition-all flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                 </svg>
-                Tambah Pencatatan
+                Catat Transaksi Baru
             </button>
         </div>
 
-        {{-- Filter --}}
-        <div
-            class="px-6 py-4 bg-[--color-bg-subtle] border-b border-[--color-border-default] flex items-end gap-4 flex-wrap">
-            <div class="space-y-1.5 w-full sm:w-auto flex-1 sm:flex-none min-w-[140px]">
-                <label class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">Jenis
-                    Buku</label>
-                <select wire:model.live="filterJenis"
-                    class="appearance-none w-full px-3 py-2 border border-[--color-border-default] rounded-lg text-sm text-[--color-text-primary] bg-white
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150">
-                    <option value="">Semua Jenis</option>
-                    <option value="tabungan">Tabungan</option>
-                    <option value="deposito">Deposito</option>
-                </select>
+        {{-- Filter Bar (Sleek Inline Design) --}}
+        <div class="px-8 py-5 border-b border-slate-100 bg-white">
+            <div class="flex flex-col lg:flex-row lg:items-end gap-4">
+
+                <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jenis
+                            Buku</label>
+                        <select wire:model.live="filterJenis"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all appearance-none cursor-pointer">
+                            <option value="">Semua Jenis</option>
+                            <option value="tabungan">Tabungan</option>
+                            <option value="deposito">Deposito</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tipe
+                            Transaksi</label>
+                        <select wire:model.live="filterTipe"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all appearance-none cursor-pointer">
+                            <option value="">Semua Tipe</option>
+                            @foreach (\App\Enums\TipeTransaksi::cases() as $tipe)
+                                <option value="{{ $tipe->value }}">{{ $tipe->labelShort() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Dari
+                            Tanggal</label>
+                        <input type="date" wire:model.live="filterDari"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sampai
+                            Tanggal</label>
+                        <input type="date" wire:model.live="filterSampai"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 lg:pb-0.5">
+                    <button type="button" wire:click="resetFilter"
+                        class="px-5 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600 rounded-xl transition-all shadow-sm flex items-center justify-center whitespace-nowrap">
+                        Reset Filter
+                    </button>
+                </div>
             </div>
 
-            <div class="space-y-1.5 w-full sm:w-auto flex-1 sm:flex-none min-w-[140px]">
-                <label class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">Tipe
-                    Transaksi</label>
-                <select wire:model.live="filterTipe"
-                    class="appearance-none w-full px-3 py-2 border border-[--color-border-default] rounded-lg text-sm text-[--color-text-primary] bg-white
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150">
-                    <option value="">Semua Tipe</option>
-                    @foreach (\App\Enums\TipeTransaksi::cases() as $tipe)
-                        <option value="{{ $tipe->value }}">{{ $tipe->labelShort() }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="space-y-1.5 w-full sm:w-auto flex-1 sm:flex-none min-w-[140px]">
-                <label class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">Dari
-                    Tanggal</label>
-                <input type="date" wire:model.live="filterDari"
-                    class="w-full px-3 py-2 border border-[--color-border-default] rounded-lg text-sm text-[--color-text-primary] bg-white
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150">
-            </div>
-
-            <div class="space-y-1.5 w-full sm:w-auto flex-1 sm:flex-none min-w-[140px]">
-                <label
-                    class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">Sampai
-                    Tanggal</label>
-                <input type="date" wire:model.live="filterSampai"
-                    class="w-full px-3 py-2 border border-[--color-border-default] rounded-lg text-sm text-[--color-text-primary] bg-white
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150">
-            </div>
-
-            <button type="button" wire:click="resetFilter"
-                class="px-4 py-2 border border-[--color-border-default] bg-white text-sm font-medium text-[--color-text-secondary] rounded-lg
-                       hover:bg-[--color-bg-subtle] hover:text-[--color-text-primary] transition-all duration-150 h-[38px] flex items-center justify-center">
-                Reset
-            </button>
-
-            <div
-                class="w-full sm:w-auto sm:ml-auto text-sm text-[--color-text-muted] font-medium self-center mt-2 sm:mt-0">
-                <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">{{ $this->logList->count() }}
-                    pencatatan</span>
+            <div class="mt-4 flex items-center justify-between text-xs font-medium">
+                <span
+                    class="inline-flex items-center gap-1.5 text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    Ditemukan {{ $this->logList->count() }} entri pencatatan
+                </span>
             </div>
         </div>
 
-        {{-- Tabel Log --}}
+        {{-- Data Table --}}
         @if ($this->logList->isEmpty())
-            <div class="py-20 flex flex-col items-center text-center">
+            <div class="py-24 flex flex-col items-center justify-center text-center px-4">
                 <div
-                    class="w-16 h-16 bg-indigo-50 border border-indigo-100 rounded-full flex items-center justify-center mb-5">
-                    <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="w-20 h-20 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                 </div>
-                <p class="text-base font-semibold text-[--color-text-primary] mb-2">Belum ada pencatatan</p>
-                <p class="text-sm text-[--color-text-muted] max-w-sm mb-6">Mulai catat penggunaan stok buku Anda. Klik
-                    tombol "Tambah Pencatatan" di atas untuk menambahkan entri pertama.</p>
-                <button type="button" wire:click="openCreateForm" class="btn-primary-sm px-4 py-2">
+                <h3 class="text-lg font-bold text-slate-800 mb-1">Belum Ada Transaksi</h3>
+                <p class="text-sm text-slate-500 max-w-sm mb-6">Mulai catat penggunaan atau penambahan fisik buku. Klik
+                    tombol "Catat Transaksi Baru" untuk memulai.</p>
+                <button type="button" wire:click="openCreateForm"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Buat Pencatatan Baru
+                    Buat Pencatatan Pertama
                 </button>
             </div>
         @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+            <div class="overflow-x-auto min-h-[300px]">
+                <table class="w-full text-sm text-left">
                     <thead>
-                        <tr class="bg-[--color-bg-subtle] border-b border-[--color-border-default]">
+                        <tr class="bg-slate-50 border-b border-slate-200">
                             <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-[--color-text-muted] uppercase tracking-wider w-32">
-                                Tanggal
-                            </th>
+                                class="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap w-36">
+                                Tanggal</th>
                             <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-[--color-text-muted] uppercase tracking-wider w-28">
-                                Jenis
-                            </th>
+                                class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap w-32">
+                                Jenis Buku</th>
                             <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-[--color-text-muted] uppercase tracking-wider">
-                                Tipe
-                            </th>
+                                class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                                Tipe Transaksi</th>
                             <th
-                                class="px-6 py-4 text-right text-xs font-semibold text-[--color-text-muted] uppercase tracking-wider w-32">
-                                Jumlah
-                            </th>
+                                class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right whitespace-nowrap w-32">
+                                Jumlah</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-1/3">
+                                Keterangan</th>
                             <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-[--color-text-muted] uppercase tracking-wider">
-                                Keterangan
-                            </th>
-                            <th
-                                class="px-6 py-4 text-right text-xs font-semibold text-[--color-text-muted] uppercase tracking-wider w-32">
-                                Aksi
-                            </th>
+                                class="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right whitespace-nowrap w-24">
+                                Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[--color-border-default]">
+                    <tbody class="divide-y divide-slate-100">
                         @foreach ($this->logList as $p)
                             @php
                                 $lockDate = $this->lockDates[$p->jenis->value] ?? null;
                                 $isLocked = $lockDate && $p->tanggal_catat->format('Y-m-d') <= $lockDate;
                             @endphp
                             <tr
-                                class="{{ $isLocked ? 'bg-[--color-bg-subtle]/30' : 'hover:bg-[--color-bg-subtle]' }} transition-colors duration-150 group">
-                                <td class="px-6 py-4">
-                                    <span class="text-sm font-mono text-[--color-text-primary]">
-                                        {{ $p->tanggal_catat->format('d/m/Y') }}
-                                    </span>
-                                    @if ($isLocked)
-                                        <span class="ml-1.5 text-[--color-text-disabled] cursor-help"
-                                            title="Terkunci — periode sudah disubmit">
-                                            <svg class="w-3.5 h-3.5 inline" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd"
-                                                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                        </span>
-                                    @endif
+                                class="group hover:bg-slate-50/80 transition-colors {{ $isLocked ? 'bg-slate-50/50' : '' }}">
+                                <td class="px-8 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="font-mono text-slate-700 font-medium">{{ $p->tanggal_catat->format('d/m/Y') }}</span>
+                                        @if ($isLocked)
+                                            <span class="text-slate-400 cursor-help"
+                                                title="Terkunci — periode laporan sudah disubmit">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <span
-                                        class="text-xs font-semibold px-2 py-1 rounded-md border {{ $p->jenis->value === 'tabungan' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-200' }}">
+                                        class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border {{ $p->jenis->value === 'tabungan' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-700 border-slate-200' }}">
                                         {{ $p->jenis->label() }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <span
-                                        class="text-xs font-medium px-2.5 py-1 rounded-md border {{ $p->tipe_transaksi->badgeClass() }}">
+                                        class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border {{ $p->tipe_transaksi->badgeClass() }}">
                                         {{ $p->tipe_transaksi->labelShort() }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
                                     <span
-                                        class="font-mono font-bold text-base {{ $p->tipe_transaksi->isAddition() ? 'text-emerald-600' : 'text-red-600' }}">
+                                        class="font-mono font-bold text-base {{ $p->tipe_transaksi->isAddition() ? 'text-emerald-600' : 'text-rose-600' }}">
                                         {{ $p->tipe_transaksi->isAddition() ? '+' : '-' }}{{ number_format($p->jumlah, 0, ',', '.') }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-[--color-text-muted] max-w-sm truncate">
-                                    {{ $p->keterangan ?? '...' }}
+                                <td class="px-6 py-4 text-slate-600">
+                                    <div class="max-w-xs truncate" title="{{ $p->keterangan }}">
+                                        {{ $p->keterangan ?: '-' }}
+                                    </div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div
-                                        class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
-                                        @if (!$isLocked)
+                                <td class="px-8 py-4 whitespace-nowrap text-right">
+                                    @if (!$isLocked)
+                                        <div
+                                            class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                                             <button type="button" wire:click="openEditForm({{ $p->id }})"
-                                                class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                title="Edit">
+                                                class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                title="Edit Data">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -433,8 +472,8 @@
                                                 </svg>
                                             </button>
                                             <button type="button" wire:click="openDeleteModal({{ $p->id }})"
-                                                class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Hapus">
+                                                class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                                title="Hapus Data">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -442,11 +481,11 @@
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                             </button>
-                                        @else
-                                            <span
-                                                class="text-xs font-medium px-2 py-1 bg-slate-100 text-[--color-text-disabled] rounded">Terkunci</span>
-                                        @endif
-                                    </div>
+                                        </div>
+                                    @else
+                                        <span
+                                            class="inline-flex text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-1 rounded">Terkunci</span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -456,56 +495,56 @@
         @endif
     </div>
 
-    {{-- ═══════════ MODAL FORM ═══════════ --}}
+    {{-- ═══════════ MODAL FORM (ADD/EDIT) ═══════════ --}}
     @if ($this->showFormModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px);" x-data
-            x-on:keydown.escape.window="$wire.closeFormModal()" x-transition:enter="transition ease-out duration-200"
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+            style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);" x-data
+            x-on:keydown.escape.window="$wire.closeFormModal()" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0">
 
-            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden relative border border-white/50"
+                x-transition:enter="transition ease-out duration-300 delay-100"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-8"
                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                x-transition:leave-end="opacity-0 scale-95 translate-y-2" @click.stop>
+                x-transition:leave-end="opacity-0 scale-95 translate-y-8" @click.stop>
 
-                <div class="px-6 py-5 border-b border-[--color-border-default] flex items-start justify-between">
+                {{-- Modal Header --}}
+                <div class="px-8 pt-8 pb-5 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
                     <div>
-                        <h3 class="font-semibold text-[--color-text-primary]">
-                            {{ $this->editingId ? 'Edit Pencatatan' : 'Tambah Pencatatan' }}
+                        <h3 class="text-xl font-bold text-slate-900">
+                            {{ $this->editingId ? 'Edit Transaksi' : 'Catat Transaksi Baru' }}
                         </h3>
-                        <p class="text-xs text-[--color-text-muted] mt-0.5">Satu entri = satu kejadian spesifik</p>
+                        <p class="text-sm text-slate-500 mt-1">Satu entri untuk satu kejadian fisik.</p>
                     </div>
                     <button type="button" wire:click="closeFormModal"
-                        class="text-[--color-text-muted] hover:text-[--color-text-secondary] hover:bg-[--color-bg-subtle] rounded-lg p-1 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                <div class="px-6 py-5 space-y-5">
+                {{-- Form Body --}}
+                <div class="px-8 py-6 space-y-6">
 
                     {{-- Tanggal --}}
-                    <div class="space-y-1.5">
-                        <label
-                            class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">
-                            Tanggal Kejadian <span class="text-red-500 font-normal">*</span>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                            Tanggal Kejadian <span class="text-rose-500">*</span>
                         </label>
                         <input type="date" wire:model.live="formTanggal" max="{{ now()->format('Y-m-d') }}"
                             @if ($this->formMinDate) min="{{ $this->formMinDate }}" @endif
-                            class="w-full px-3 py-2.5 border rounded-lg text-sm text-[--color-text-primary] bg-white placeholder:text-[--color-text-disabled]
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                   @error('formTanggal') border-red-400 bg-red-50 @else border-[--color-border-default] @enderror
-                                   transition-shadow duration-150">
+                            class="w-full px-4 py-3 bg-slate-50 border rounded-xl text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all
+                                   @error('formTanggal') border-rose-400 bg-rose-50/50 @else border-slate-200 @enderror">
+
                         @error('formTanggal')
-                            <p class="text-xs text-red-600 flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <p class="text-sm text-rose-600 mt-1.5 flex items-center gap-1">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
                                         clip-rule="evenodd" />
@@ -516,47 +555,42 @@
 
                         @if ($this->formDateLocked)
                             <div
-                                class="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
-                                <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="currentColor"
-                                    viewBox="0 0 20 20">
+                                class="mt-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start gap-2">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
                                         clip-rule="evenodd" />
                                 </svg>
-                                {{ $this->formDateLockMsg }}
+                                <p>{{ $this->formDateLockMsg }}</p>
                             </div>
                         @elseif($this->formMinDate)
-                            <p class="text-xs text-[--color-text-muted]">
-                                Tanggal tersedia: {{ \Carbon\Carbon::parse($this->formMinDate)->format('d/m/Y') }} –
-                                hari ini
+                            <p class="text-xs text-slate-500 mt-2 font-medium">
+                                Bisa mundur max. sampai:
+                                {{ \Carbon\Carbon::parse($this->formMinDate)->format('d/m/Y') }}
                             </p>
                         @endif
                     </div>
 
                     {{-- Jenis + Tipe --}}
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label
-                                class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">
-                                Jenis Buku <span class="text-red-500 font-normal">*</span>
+                    <div class="grid grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                                Jenis <span class="text-rose-500">*</span>
                             </label>
                             <select wire:model.live="formJenis"
-                                class="appearance-none w-full px-3 py-2.5 border border-[--color-border-default] rounded-lg text-sm text-[--color-text-primary] bg-white
-                                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150">
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all appearance-none cursor-pointer">
                                 @foreach (\App\Enums\JenisLaporan::cases() as $j)
                                     <option value="{{ $j->value }}">{{ $j->label() }}</option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div class="space-y-1.5">
-                            <label
-                                class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">
-                                Tipe Transaksi <span class="text-red-500 font-normal">*</span>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                                Tipe <span class="text-rose-500">*</span>
                             </label>
                             <select wire:model="formTipe"
-                                class="appearance-none w-full px-3 py-2.5 border border-[--color-border-default] rounded-lg text-sm text-[--color-text-primary] bg-white
-                                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150">
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all appearance-none cursor-pointer">
                                 @foreach (\App\Enums\TipeTransaksi::cases() as $tipe)
                                     <option value="{{ $tipe->value }}">{{ $tipe->labelShort() }}</option>
                                 @endforeach
@@ -565,52 +599,45 @@
                     </div>
 
                     {{-- Jumlah --}}
-                    <div class="space-y-1.5">
-                        <label
-                            class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">
-                            Jumlah Buku <span class="text-red-500 font-normal">*</span>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                            Jumlah Fisik <span class="text-rose-500">*</span>
                         </label>
-                        <input type="number" wire:model="formJumlah" min="1" max="99999"
-                            class="w-full px-3 py-2.5 border rounded-lg text-sm font-mono text-right text-[--color-text-primary] bg-white
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                   @error('formJumlah') border-red-400 bg-red-50 @else border-[--color-border-default] @enderror
-                                   transition-shadow duration-150">
+                        <input type="number" wire:model="formJumlah" min="1" max="99999" placeholder="0"
+                            class="w-full px-4 py-3 bg-slate-50 border rounded-xl text-2xl font-black font-mono text-right text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all
+                                   @error('formJumlah') border-rose-400 bg-rose-50/50 @else border-slate-200 @enderror">
                         @error('formJumlah')
-                            <p class="text-xs text-red-600 flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                            <p class="text-sm text-rose-600 mt-1.5 flex items-center justify-end gap-1">
                                 {{ $message }}
                             </p>
                         @enderror
                     </div>
 
                     {{-- Keterangan --}}
-                    <div class="space-y-1.5">
-                        <label
-                            class="block text-xs font-semibold text-[--color-text-secondary] uppercase tracking-wider">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
                             Keterangan <span
-                                class="text-[--color-text-muted] font-normal normal-case tracking-normal">(opsional)</span>
+                                class="text-slate-400 font-medium normal-case tracking-normal">(Opsional)</span>
                         </label>
                         <input type="text" wire:model="formKeterangan" maxlength="255"
-                            placeholder="Contoh: Nasabah Budi Santoso, Seri No. ABC001..."
-                            class="w-full px-3 py-2.5 border border-[--color-border-default] rounded-lg text-sm text-[--color-text-primary] bg-white placeholder:text-[--color-text-disabled]
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150">
+                            placeholder="Contoh: Nasabah Budi, No Seri ABC..."
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
                     </div>
                 </div>
 
+                {{-- Modal Footer --}}
                 <div
-                    class="px-6 py-4 bg-[--color-bg-subtle] border-t border-[--color-border-default] flex items-center justify-end gap-3">
-                    <button type="button" wire:click="closeFormModal" class="btn-secondary text-xs px-4 py-2">
+                    class="px-8 py-5 bg-white border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+                    <button type="button" wire:click="closeFormModal"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-xl font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300">
                         Batal
                     </button>
                     <button type="button" wire:click="saveForm" wire:loading.attr="disabled"
-                        @if ($this->formDateLocked) disabled @endif class="btn-primary text-xs px-5 py-2">
+                        @if ($this->formDateLocked) disabled @endif
+                        class="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
                         <svg wire:loading.remove wire:target="saveForm" class="w-4 h-4" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M5 13l4 4L19 7" />
                         </svg>
                         <svg wire:loading wire:target="saveForm" class="w-4 h-4 animate-spin" fill="none"
@@ -621,7 +648,7 @@
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
                         <span wire:loading.remove
-                            wire:target="saveForm">{{ $this->editingId ? 'Perbarui' : 'Simpan' }}</span>
+                            wire:target="saveForm">{{ $this->editingId ? 'Simpan Perubahan' : 'Catat Sekarang' }}</span>
                         <span wire:loading wire:target="saveForm">Menyimpan...</span>
                     </button>
                 </div>
@@ -633,42 +660,53 @@
 
     {{-- ═══════════ MODAL DELETE ═══════════ --}}
     @if ($this->showDeleteModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px);" x-data
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+            style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);" x-data
             x-on:keydown.escape.window="$wire.closeDeleteModal()"
-            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
+            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
 
-            <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden relative border border-white/50"
+                x-transition:enter="transition ease-out duration-300 delay-100"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-8"
                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                x-transition:leave-end="opacity-0 scale-95 translate-y-2" @click.stop>
+                x-transition:leave-end="opacity-0 scale-95 translate-y-8" @click.stop>
 
-                <div class="px-6 py-6 text-center">
-                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="px-8 pt-8 pb-6 text-center">
+                    <div
+                        class="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
+                        <svg class="w-8 h-8 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-[--color-text-primary] mb-3">Hapus Pencatatan?</h3>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Hapus Pencatatan?</h3>
+                    <p class="text-sm text-slate-500 mb-5">Apakah Anda yakin ingin menghapus data ini? Tindakan ini
+                        tidak dapat dibatalkan.</p>
+
                     <div
-                        class="bg-[--color-bg-inset] rounded-lg px-4 py-3 text-sm font-medium text-[--color-text-primary] mb-3">
+                        class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 text-left">
                         {{ $this->deletingLabel }}
                     </div>
-                    <p class="text-xs text-red-600 font-medium">Tindakan ini tidak dapat dibatalkan.</p>
                 </div>
 
-                <div class="px-6 pb-6 flex items-center justify-center gap-3">
-                    <button type="button" wire:click="closeDeleteModal" class="btn-secondary text-xs px-5 py-2">
+                <div class="px-8 pb-8 flex flex-col-reverse sm:flex-row items-center gap-3">
+                    <button type="button" wire:click="closeDeleteModal"
+                        class="w-full sm:w-1/2 px-4 py-2.5 rounded-xl font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300">
                         Batal
                     </button>
                     <button type="button" wire:click="confirmDelete" wire:loading.attr="disabled"
-                        class="btn-danger text-xs px-5 py-2">
+                        class="w-full sm:w-1/2 px-4 py-2.5 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-rose-100">
+                        <svg wire:loading wire:target="confirmDelete" class="w-4 h-4 animate-spin" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4" />
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
                         <span wire:loading.remove wire:target="confirmDelete">Ya, Hapus</span>
                         <span wire:loading wire:target="confirmDelete">Menghapus...</span>
                     </button>
