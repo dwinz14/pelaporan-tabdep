@@ -117,6 +117,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/periode',          [PeriodeController::class, 'index'])->name('periode.index');
             Route::get('/periode/create',   [PeriodeController::class, 'create'])->name('periode.create');
             Route::post('/periode',         [PeriodeController::class, 'store'])->name('periode.store');
+            Route::post('/periode/generate-suggested',    [PeriodeController::class, 'generateSuggested'])->name('periode.generate-suggested');
+            Route::get('/periode/{periode}',              [PeriodeController::class, 'show'])->name('periode.show');
 
             // audit
             Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');

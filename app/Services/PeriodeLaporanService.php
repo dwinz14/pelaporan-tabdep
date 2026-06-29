@@ -136,4 +136,43 @@ class PeriodeLaporanService
             return $updated;
         });
     }
+
+    /**
+     * Saran generate periode berikutnya.
+     * Logika: tanggal_akhir periode terbaru + 14 hari.
+     * Muncul ketika: today >= (tanggal_saran - 1 hari) DAN periode tersebut belum ada.
+     */
+    public function getSuggestedNextPeriode(): ?array
+    {
+        $latest = PeriodeLaporan::orderBy('tanggal_akhir', 'desc')->first();
+
+        if (! $latest) return null;
+
+        $nextDate = $latest->tanggal_akhir->copy()->addDays(14);
+
+        // Jangan tampilkan jika periode berikutnya sudah ada
+        if ($this->repo->existsByTanggal($nextDate->format('Y-m-d'))) {
+            return null;
+        }
+
+        // Mulai tampilkan di H-1 (satu hari sebelum tanggal periode)
+        $suggestionStart = $nextDate->copy()->subDay()->startOfDay();
+
+        if (now()->startOfDay()->lt($suggestionStart)) {
+            return null;
+        }
+
+        $isOverdue = now()->startOfDay()->gt($nextDate->copy()->startOfDay());
+
+        return [
+            'tanggal'      => $nextDate->format('Y-m-d'),
+            'display'      => $nextDate->locale('id')->isoFormat('dddd, D MMMM Y'),
+            'nama_periode' => 'Periode ' . $nextDate->locale('id')->isoFormat('D MMMM Y'),
+            'is_overdue'   => $isOverdue,
+            'prev_periode' => $latest->nama_periode,
+            'days_diff'    => $isOverdue
+                ? now()->startOfDay()->diffInDays($nextDate->copy()->startOfDay())
+                : null,
+        ];
+    }
 }

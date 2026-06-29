@@ -14,6 +14,7 @@ use Livewire\Component;
 class PivotPeriode extends Component
 {
     public PeriodeLaporan $periode;
+    public bool $readonly = false;
 
     // ─── Search ───────────────────────────────────────────────
     public string $search = '';
@@ -93,10 +94,18 @@ class PivotPeriode extends Component
     public function columnTotals(): array
     {
         $totals = [
-            'tab_saldo_awal' => 0, 'tab_tambahan' => 0, 'tab_digunakan' => 0,
-            'tab_rusak' => 0, 'tab_hilang' => 0, 'tab_saldo_akhir' => 0,
-            'dep_saldo_awal' => 0, 'dep_tambahan' => 0, 'dep_digunakan' => 0,
-            'dep_rusak' => 0, 'dep_hilang' => 0, 'dep_saldo_akhir' => 0,
+            'tab_saldo_awal' => 0,
+            'tab_tambahan' => 0,
+            'tab_digunakan' => 0,
+            'tab_rusak' => 0,
+            'tab_hilang' => 0,
+            'tab_saldo_akhir' => 0,
+            'dep_saldo_awal' => 0,
+            'dep_tambahan' => 0,
+            'dep_digunakan' => 0,
+            'dep_rusak' => 0,
+            'dep_hilang' => 0,
+            'dep_saldo_akhir' => 0,
         ];
 
         foreach ($this->pivotData as $row) {

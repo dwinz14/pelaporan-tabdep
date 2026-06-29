@@ -280,7 +280,10 @@
                                     </span>
                                 </td>
                                 <td class="px-2 py-2.5 border-r border-slate-200/70">
-                                    @include('livewire.akunting._action-cell', ['laporan' => $tab])
+                                    @include('livewire.akunting._action-cell', [
+                                        'laporan' => $tab,
+                                        'readonly' => $readonly,
+                                    ])
                                 </td>
                             @else
                                 <td colspan="7"
@@ -313,7 +316,10 @@
                                     </span>
                                 </td>
                                 <td class="px-2 py-2.5">
-                                    @include('livewire.akunting._action-cell', ['laporan' => $dep])
+                                    @include('livewire.akunting._action-cell', [
+                                        'laporan' => $dep,
+                                        'readonly' => $readonly,
+                                    ])
                                 </td>
                             @else
                                 <td colspan="7" class="px-3 py-2.5 text-center text-slate-400 text-[11px] italic">

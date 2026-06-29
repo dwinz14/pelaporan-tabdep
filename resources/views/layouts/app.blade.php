@@ -145,7 +145,7 @@
                     </span>
                 </div>
                 <div class="min-w-0">
-                    <p class="text-white text-sm font-semibold leading-snug tracking-tight">SI Tab-Dep</p>
+                    <p class="text-white text-sm font-semibold leading-snug tracking-tight">TabDep-Hub</p>
                     <p class="text-slate-400 text-[11px] leading-tight mt-0.5 truncate">Manajemen Pelaporan Stok</p>
                 </div>
             </div>
