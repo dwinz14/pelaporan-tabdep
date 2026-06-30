@@ -3,351 +3,510 @@
         restoreModalOpen: {{ session('open_restore_modal') ? 'true' : 'false' }},
         confirmText: '',
         get canConfirm() { return this.confirmText === 'RESTORE' }
-    }">
+    }" class="max-w-6xl mx-auto pb-10">
 
-        {{-- ═══ FLASH MESSAGES ═══ --}}
-        @if (session('db_success'))
-            <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 8000)"
-                class="mb-5 p-4 bg-emerald-50 border border-emerald-300 rounded-xl flex items-start gap-3">
-                <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clip-rule="evenodd" />
-                </svg>
-                <p class="text-sm text-emerald-800">{{ session('db_success') }}</p>
-            </div>
-        @endif
-
-        @if (session('db_error'))
-            <div class="mb-5 p-4 bg-red-50 border border-red-300 rounded-xl flex items-start gap-3">
-                <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                </svg>
-                <p class="text-sm text-red-800">{{ session('db_error') }}</p>
-            </div>
-        @endif
-
-        {{-- Peringatan jika proc_open tidak tersedia --}}
-        @if (!$canRunProcess)
-            <div class="mb-5 p-4 bg-amber-50 border border-amber-300 rounded-xl flex items-start gap-3">
-                <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                </svg>
-                <div>
-                    <p class="text-sm font-semibold text-amber-800">Fitur Backup/Restore Tidak Tersedia</p>
-                    <p class="text-xs text-amber-700 mt-0.5">Fungsi <code>proc_open</code> dinonaktifkan di konfigurasi
-                        PHP server ini. Hubungi administrator server untuk mengaktifkannya.</p>
-                </div>
-            </div>
-        @endif
-
-        {{-- ═══ GRID ATAS: STATUS + INFO DATABASE ═══ --}}
-        <div class="grid md:grid-cols-2 gap-5 mb-5">
-
-            {{-- Koneksi Database --}}
-            <div
-                class="bg-white rounded-xl border overflow-hidden
-                    {{ $connection['connected'] ? 'border-emerald-200' : 'border-red-200' }}">
-                <div
-                    class="px-5 py-3.5 border-b {{ $connection['connected'] ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100' }} flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span
-                            class="w-2 h-2 rounded-full {{ $connection['connected'] ? 'bg-emerald-500 animate-pulse' : 'bg-red-500' }}"></span>
-                        <p
-                            class="text-sm font-semibold {{ $connection['connected'] ? 'text-emerald-800' : 'text-red-800' }}">
-                            {{ $connection['connected'] ? 'Terhubung' : 'Koneksi Gagal' }}
-                        </p>
-                    </div>
-                    <span
-                        class="text-xs {{ $connection['connected'] ? 'text-emerald-600' : 'text-red-600' }} font-mono uppercase">
-                        {{ config('database.default') }}
-                    </span>
-                </div>
-                <div class="px-5 py-4 space-y-2.5">
-                    @if ($connection['connected'])
-                        @foreach ([['label' => 'Database', 'value' => $connection['database']], ['label' => 'Host', 'value' => $connection['host'] . ':' . $connection['port']]] as $item)
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-gray-500 text-xs">{{ $item['label'] }}</span>
-                                <span class="font-mono text-xs font-semibold text-gray-800">{{ $item['value'] }}</span>
-                            </div>
-                        @endforeach
-                    @else
-                        <p class="text-xs text-red-700 font-mono">{{ $connection['error'] }}</p>
-                    @endif
-
-                    {{-- Availabilitas Tool --}}
-                    <div class="pt-2 border-t border-gray-100 space-y-1.5">
-                        @foreach ([['label' => 'mysqldump', 'ok' => $mysqldumpFound], ['label' => 'mysql', 'ok' => $mysqlFound]] as $tool)
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-gray-500 font-mono">{{ $tool['label'] }}</span>
-                                @if ($tool['ok'])
-                                    <span
-                                        class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✓
-                                        Tersedia</span>
-                                @else
-                                    <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">✕
-                                        Tidak Ditemukan</span>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- Info Database --}}
-            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50">
-                    <p class="text-sm font-semibold text-gray-800">Informasi Database</p>
-                </div>
-                @if ($dbInfo['success'])
-                    <div class="px-5 py-4 space-y-2.5">
-                        @foreach ([['label' => 'Versi MySQL', 'value' => $dbInfo['version']], ['label' => 'Ukuran DB', 'value' => $dbInfo['size_human']], ['label' => 'Jumlah Tabel', 'value' => $dbInfo['tables'] . ' tabel'], ['label' => 'Character Set', 'value' => $dbInfo['charset']], ['label' => 'Collation', 'value' => $dbInfo['collation']]] as $item)
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-xs text-gray-500">{{ $item['label'] }}</span>
-                                <span class="font-mono text-xs font-semibold text-gray-800">{{ $item['value'] }}</span>
-                            </div>
-                        @endforeach
-
-                        {{-- Disk Usage --}}
-                        <div class="pt-2 border-t border-gray-100">
-                            <div class="flex items-center justify-between text-xs mb-1.5">
-                                <span class="text-gray-500">Ruang Disk Tersedia</span>
-                                <span
-                                    class="font-mono font-semibold {{ $diskCheck['sufficient'] ? 'text-emerald-700' : 'text-red-600' }}">
-                                    {{ $diskInfo['free_human'] }} bebas
-                                </span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div class="h-1.5 rounded-full transition-all
-                                        {{ $diskInfo['used_percent'] > 85 ? 'bg-red-500' : ($diskInfo['used_percent'] > 70 ? 'bg-amber-500' : 'bg-emerald-500') }}"
-                                    style="width: {{ min($diskInfo['used_percent'], 100) }}%"></div>
-                            </div>
-                            <p class="text-xs text-gray-400 mt-1">{{ $diskInfo['used_percent'] }}% digunakan dari
-                                {{ $diskInfo['total_human'] }}</p>
+        {{-- ═══ FLASH MESSAGES (Modern Toast Style) ═══ --}}
+        <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+            @if (session('db_success'))
+                <div x-data="{ show: true }" x-show="show" x-transition:enter="transform ease-out duration-300 transition"
+                    x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                    x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                    x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 6000)"
+                    class="pointer-events-auto w-full bg-white border-l-4 border-emerald-500 rounded-xl shadow-xl overflow-hidden"
+                    role="alert">
+                    <div class="p-4 flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-3 w-0 flex-1 pt-0.5">
+                            <p class="text-sm font-bold text-slate-900">Berhasil</p>
+                            <p class="mt-1 text-sm text-slate-500">{{ session('db_success') }}</p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0 flex">
+                            <button @click="show = false"
+                                class="bg-white rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                @else
-                    <div class="px-5 py-4">
-                        <p class="text-xs text-red-600 font-mono">{{ $dbInfo['error'] }}</p>
+                </div>
+            @endif
+
+            @if (session('db_error'))
+                <div x-data="{ show: true }" x-show="show"
+                    x-transition:enter="transform ease-out duration-300 transition"
+                    x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                    x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                    x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 8000)"
+                    class="pointer-events-auto w-full bg-white border-l-4 border-rose-500 rounded-xl shadow-xl overflow-hidden"
+                    role="alert">
+                    <div class="p-4 flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="ml-3 w-0 flex-1 pt-0.5">
+                            <p class="text-sm font-bold text-slate-900">Terjadi Kesalahan</p>
+                            <p class="mt-1 text-sm text-slate-500">{{ session('db_error') }}</p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0 flex">
+                            <button @click="show = false"
+                                class="bg-white rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                @endif
+                </div>
+            @endif
+        </div>
+
+        {{-- Header Page --}}
+        <div class="mb-8 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Manajemen Database</h2>
+                    <p class="text-sm text-slate-500">Pusat pencadangan dan pemulihan data sistem Anda.</p>
+                </div>
             </div>
         </div>
 
-        {{-- ═══ GRID BAWAH: BACKUP + RESTORE ═══ --}}
-        <div class="grid md:grid-cols-5 gap-5 mb-5">
+        {{-- Peringatan jika proc_open tidak tersedia --}}
+        @if (!$canRunProcess)
+            <div
+                class="mb-8 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-start gap-4 shadow-sm">
+                <div class="bg-amber-100 p-2 rounded-full flex-shrink-0">
+                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-amber-900">Fitur Backup/Restore Belum Siap</h3>
+                    <p class="text-sm text-amber-700 mt-1 leading-relaxed">Fungsi sistem (<code
+                            class="bg-amber-200/50 px-1 rounded">proc_open</code>) saat ini dinonaktifkan oleh server.
+                        Silakan hubungi tim IT atau penyedia Hosting Anda untuk mengaktifkannya agar Anda dapat
+                        mencadangkan data.</p>
+                </div>
+            </div>
+        @endif
 
-            {{-- Kolom Backup (3/5) --}}
-            <div class="md:col-span-3 space-y-4">
+        {{-- ═══ TOP DASHBOARD: HEALTH CHECK ═══ --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
-                {{-- Create Backup --}}
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-900">Buat Backup</h3>
-                            <p class="text-xs text-gray-400 mt-0.5">
-                                Export seluruh database ke file .sql
-                            </p>
+            {{-- 1. Status Koneksi --}}
+            <div
+                class="bg-white rounded-3xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                <div
+                    class="absolute -right-6 -top-6 w-24 h-24 rounded-full {{ $connection['connected'] ? 'bg-emerald-50' : 'bg-rose-50' }} opacity-50 pointer-events-none">
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Status Database</p>
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex h-4 w-4">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $connection['connected'] ? 'bg-emerald-400' : 'bg-rose-400' }} opacity-75"></span>
+                            <span
+                                class="relative inline-flex rounded-full h-4 w-4 {{ $connection['connected'] ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
                         </div>
-                        @if (!$diskCheck['sufficient'])
-                            <span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-lg font-medium">
-                                ⚠ Disk hampir penuh
+                        <h4
+                            class="text-xl font-bold {{ $connection['connected'] ? 'text-slate-800' : 'text-rose-700' }}">
+                            {{ $connection['connected'] ? 'Sistem Terhubung' : 'Koneksi Terputus' }}
+                        </h4>
+                    </div>
+                </div>
+                <div
+                    class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-500">
+                    <span>Host: <span class="font-mono text-slate-700">{{ $connection['host'] }}</span></span>
+                    <span
+                        class="uppercase font-bold tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{{ config('database.default') }}</span>
+                </div>
+            </div>
+
+            {{-- 2. Kapasitas Penyimpanan --}}
+            <div class="bg-white rounded-3xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Penyimpanan Server</p>
+                        @if ($dbInfo['success'] && !$diskCheck['sufficient'])
+                            <span
+                                class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Penuh
                             </span>
                         @endif
                     </div>
-                    <div class="px-5 py-4">
+                    @if ($dbInfo['success'])
+                        <div class="flex items-end gap-1 mt-1 mb-3">
+                            <h4 class="text-2xl font-bold text-slate-800">{{ $diskInfo['free_human'] }}</h4>
+                            <p class="text-sm font-medium text-slate-500 mb-1">tersedia</p>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 mb-2 overflow-hidden">
+                            <div class="h-2.5 rounded-full transition-all duration-1000 ease-out {{ $diskInfo['used_percent'] > 85 ? 'bg-rose-500' : ($diskInfo['used_percent'] > 70 ? 'bg-amber-400' : 'bg-emerald-400') }}"
+                                style="width: {{ min($diskInfo['used_percent'], 100) }}%"></div>
+                        </div>
+                        <p class="text-xs text-slate-400 font-medium text-right">{{ $diskInfo['used_percent'] }}%
+                            Terpakai dari {{ $diskInfo['total_human'] }}</p>
+                    @else
+                        <p class="text-sm text-slate-500 italic mt-4">Data penyimpanan tidak tersedia.</p>
+                    @endif
+                </div>
+            </div>
+
+            {{-- 3. Ringkasan Data --}}
+            <div class="bg-white rounded-3xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm">
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Volume Data Saat Ini</p>
+                    @if ($dbInfo['success'])
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-2xl font-bold text-slate-800">{{ $dbInfo['size_human'] }}</h4>
+                                <p class="text-sm font-medium text-slate-500">Tersebar di {{ $dbInfo['tables'] }}
+                                    Tabel</p>
+                            </div>
+                        </div>
+                    @else
+                        <p class="text-sm text-slate-500 italic mt-2">Data ringkasan tidak tersedia.</p>
+                    @endif
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Komponen Sistem:</p>
+                    <div class="flex gap-1">
+                        <span class="w-2 h-2 rounded-full {{ $mysqldumpFound ? 'bg-emerald-400' : 'bg-rose-400' }}"
+                            title="Mesin Backup (mysqldump) {{ $mysqldumpFound ? 'Siap' : 'Error' }}"></span>
+                        <span class="w-2 h-2 rounded-full {{ $mysqlFound ? 'bg-emerald-400' : 'bg-rose-400' }}"
+                            title="Mesin Restore (mysql) {{ $mysqlFound ? 'Siap' : 'Error' }}"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- ═══ MAIN OPERATIONS (BACKUP vs RESTORE) ═══ --}}
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+
+            {{-- SAFE ZONE: BACKUP (3/5) --}}
+            <div class="lg:col-span-3 space-y-6">
+                <div
+                    class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+
+                    <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                </svg>
+                                Pencadangan Data (Backup)
+                            </h3>
+                            <p class="text-sm text-slate-500 mt-1">Simpan salinan seluruh data ke dalam bentuk file
+                                aman.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-8">
                         @if (!$diskCheck['sufficient'])
-                            <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
-                                Ruang disk tidak cukup. Tersedia: <strong>{{ $diskCheck['free'] }}</strong>,
-                                dibutuhkan: <strong>{{ $diskCheck['required'] }}</strong>.
-                                Hapus backup lama terlebih dahulu.
+                            <div
+                                class="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-2xl flex gap-3 text-rose-800 text-sm">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                    <p class="font-bold">Ruang Penyimpanan Hampir Penuh!</p>
+                                    <p class="mt-0.5 opacity-90">Sistem membutuhkan setidaknya
+                                        <strong>{{ $diskCheck['required'] }}</strong> untuk membuat backup baru.
+                                        Silakan hapus file backup lama di bawah ini.
+                                    </p>
+                                </div>
                             </div>
                         @endif
 
                         <form method="POST" action="{{ route('admin.database.backup') }}" x-data="{ loading: false }"
-                            @submit="loading = true">
+                            @submit="loading = true" class="mb-10">
                             @csrf
                             <button type="submit"
                                 :disabled="loading ||
                                     {{ !$canRunProcess || !$mysqldumpFound || !$diskCheck['sufficient'] ? 'true' : 'false' }}"
-                                class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold
-                                   rounded-lg hover:bg-indigo-700 transition-colors
-                                   disabled:opacity-50 disabled:cursor-not-allowed">
-                                <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white text-base font-bold rounded-2xl hover:bg-indigo-600 focus:ring-4 focus:ring-indigo-100 transition-all shadow-lg shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed group">
+                                <svg x-show="!loading"
+                                    class="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                 </svg>
-                                <svg x-show="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"
-                                    x-cloak>
+                                <svg x-show="loading" class="w-5 h-5 animate-spin" fill="none"
+                                    viewBox="0 0 24 24" x-cloak>
                                     <circle class="opacity-25" cx="12" cy="12" r="10"
                                         stroke="currentColor" stroke-width="4" />
                                     <path class="opacity-75" fill="currentColor"
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
-                                <span x-text="loading ? 'Membuat backup...' : 'Buat Backup Sekarang'"></span>
+                                <span x-text="loading ? 'Sedang Memproses...' : 'Buat Backup Sekarang'"></span>
                             </button>
-                            <p class="text-xs text-gray-400 mt-2">
-                                Proses mungkin memakan waktu beberapa menit tergantung ukuran database.
-                            </p>
                         </form>
-                    </div>
-                </div>
 
-                {{-- Daftar Backup --}}
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-gray-900">Daftar Backup</h3>
-                        <span class="text-xs text-gray-400">{{ count($backups) }} file</span>
-                    </div>
+                        {{-- Daftar Riwayat Backup --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Riwayat File
+                                    Backup</h4>
+                                <span
+                                    class="text-xs font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-lg">{{ count($backups) }}
+                                    File Tersimpan</span>
+                            </div>
 
-                    @if (empty($backups))
-                        <div class="px-5 py-10 text-center">
-                            <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                            </svg>
-                            <p class="text-sm text-gray-400">Belum ada file backup.</p>
-                            <p class="text-xs text-gray-400 mt-1">Buat backup pertama dengan tombol di atas.</p>
-                        </div>
-                    @else
-                        <div class="divide-y divide-gray-50">
-                            @foreach ($backups as $backup)
-                                <div
-                                    class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors group">
+                            @if (empty($backups))
+                                <div class="py-10 text-center border-2 border-dashed border-slate-100 rounded-2xl">
                                     <div
-                                        class="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor"
+                                        class="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                         </svg>
                                     </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-mono font-semibold text-gray-800 truncate">
-                                            {{ $backup['filename'] }}
-                                        </p>
-                                        <div class="flex items-center gap-3 mt-0.5">
-                                            <span class="text-xs text-gray-400">{{ $backup['size_human'] }}</span>
-                                            <span class="text-xs text-gray-400">
-                                                {{ $backup['created_at']->locale('id')->isoFormat('D MMM Y, HH:mm') }}
-                                            </span>
-                                            <span class="text-xs text-gray-300">
-                                                {{ $backup['created_at']->diffForHumans() }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                        {{-- Download --}}
-                                        <a href="{{ route('admin.database.download', $backup['filename']) }}"
-                                            class="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition-colors">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                            </svg>
-                                            Unduh
-                                        </a>
-
-                                        {{-- Delete --}}
-                                        <form method="POST"
-                                            action="{{ route('admin.database.delete-backup', $backup['filename']) }}"
-                                            onsubmit="return confirm('Hapus backup {{ $backup['filename'] }}? Tindakan ini tidak dapat dibatalkan.')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit"
-                                                class="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <p class="text-sm font-semibold text-slate-600">Belum ada file cadangan</p>
+                                    <p class="text-xs text-slate-400 mt-1">File backup Anda akan muncul di sini.</p>
                                 </div>
-                            @endforeach
+                            @else
+                                <div class="space-y-3">
+                                    @foreach ($backups as $backup)
+                                        <div
+                                            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-slate-200 rounded-2xl hover:border-indigo-300 hover:shadow-md transition-all bg-white group">
+                                            <div class="flex items-center gap-4 min-w-0">
+                                                <div
+                                                    class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-sm font-bold text-slate-800 truncate"
+                                                        title="{{ $backup['filename'] }}">
+                                                        {{ $backup['filename'] }}
+                                                    </p>
+                                                    <div
+                                                        class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs">
+                                                        <span
+                                                            class="font-medium text-indigo-600 bg-indigo-50 px-1.5 rounded">{{ $backup['size_human'] }}</span>
+                                                        <span
+                                                            class="text-slate-500">{{ $backup['created_at']->locale('id')->isoFormat('D MMM Y') }}</span>
+                                                        <span class="text-slate-400 hidden sm:inline">&bull;</span>
+                                                        <span
+                                                            class="text-slate-400">{{ $backup['created_at']->diffForHumans() }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="flex items-center gap-2 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex-shrink-0">
+                                                <a href="{{ route('admin.database.download', $backup['filename']) }}"
+                                                    class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 text-sm font-bold rounded-xl transition-colors border border-slate-200 hover:border-indigo-200">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                    </svg>
+                                                    Unduh
+                                                </a>
+                                                <form method="POST"
+                                                    action="{{ route('admin.database.delete-backup', $backup['filename']) }}"
+                                                    onsubmit="return confirm('Yakin ingin menghapus file backup ini permanen?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit"
+                                                        class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border border-transparent hover:border-rose-100"
+                                                        title="Hapus File">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
-                    @endif
+                    </div>
                 </div>
             </div>
 
-            {{-- Kolom Restore (2/5) --}}
-            <div class="md:col-span-2">
-                <div class="bg-white rounded-xl border border-red-200 overflow-hidden">
-                    <div class="px-5 py-3.5 border-b border-red-100 bg-red-50">
-                        <h3 class="text-sm font-semibold text-red-900">Restore Database</h3>
-                        <p class="text-xs text-red-600 mt-0.5">Operasi destruktif — hati-hati</p>
+            {{-- DANGER ZONE: RESTORE (2/5) --}}
+            <div class="lg:col-span-2">
+                <div
+                    class="bg-orange-100 rounded-[2rem] border-2 border-dashed border-rose-300 shadow-sm overflow-hidden h-full">
+
+                    <div class="px-6 py-6 border-b border-rose-200/50 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-black text-rose-800 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                Area Pemulihan (Restore)
+                            </h3>
+                            <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mt-1">Harap
+                                Berhati-hati</p>
+                        </div>
                     </div>
 
-                    <div class="px-5 py-4">
-                        {{-- Warning Box --}}
-                        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p class="text-xs font-semibold text-red-800 mb-1.5">⚠ Perhatian Serius:</p>
-                            <ul class="text-xs text-red-700 space-y-1">
-                                <li>• Semua data yang ada akan <strong>ditimpa dan hilang permanen</strong></li>
-                                <li>• Database akan diganti dengan isi file SQL yang diupload</li>
-                                <li>• <strong>Buat backup terlebih dahulu</strong> sebelum restore</li>
-                                <li>• Proses tidak dapat dibatalkan setelah dimulai</li>
+                    <div class="p-6">
+                        <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-5">
+                            <div class="flex items-center gap-2 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01M10.29 3.86l-8.18 14A2 2 0 003.82 21h16.36a2 2 0 001.71-3.14l-8.18-14a2 2 0 00-3.42 0z" />
+                                </svg>
+
+                                <h3 class="text-sm font-bold text-rose-700">
+                                    Mohon Dibaca Sebelum Memulai
+                                </h3>
+                            </div>
+
+                            <ul class="space-y-3 text-sm text-slate-700">
+                                <li class="flex gap-3">
+                                    <span class="mt-1 h-2 w-2 rounded-full bg-rose-500 shrink-0"></span>
+                                    <span>
+                                        Seluruh data aplikasi Anda saat ini akan
+                                        <span class="font-semibold text-rose-600">
+                                            ditimpa dan hilang permanen
+                                        </span>.
+                                    </span>
+                                </li>
+
+                                <li class="flex gap-3">
+                                    <span class="mt-1 h-2 w-2 rounded-full bg-amber-500 shrink-0"></span>
+                                    <span>
+                                        Sangat disarankan untuk
+                                        <span class="font-semibold text-amber-600">
+                                            membuat backup
+                                        </span>
+                                        terlebih dahulu melalui menu Backup.
+                                    </span>
+                                </li>
+
+                                <li class="flex gap-3">
+                                    <span class="mt-1 h-2 w-2 rounded-full bg-sky-500 shrink-0"></span>
+                                    <span>
+                                        Gunakan file
+                                        <code
+                                            class="rounded bg-slate-200 px-1.5 py-0.5 text-xs font-semibold text-slate-800">
+                                            .sql
+                                        </code>
+                                        yang dihasilkan dari sistem ini.
+                                    </span>
+                                </li>
                             </ul>
                         </div>
 
                         @if (!$canRunProcess || !$mysqlFound)
                             <div
-                                class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-500 text-center">
-                                Fitur restore tidak tersedia di server ini.
+                                class="p-4 bg-white/50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-500 text-center flex flex-col items-center gap-2">
+                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                Area Restore saat ini dikunci karena fitur tidak didukung oleh server.
                             </div>
                         @else
                             <form method="POST" action="{{ route('admin.database.restore.upload') }}"
-                                enctype="multipart/form-data" x-data="{ filename: '', loading: false }" @submit="loading = true">
+                                enctype="multipart/form-data" x-data="{ filename: '', isDragging: false, loading: false }" @submit="loading = true">
                                 @csrf
 
-                                <div class="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center
-                                        hover:border-red-300 transition-colors cursor-pointer mb-3"
+                                {{-- Drag & Drop Area --}}
+                                <div class="relative w-full rounded-2xl border-2 border-dashed bg-white transition-all duration-200 group cursor-pointer overflow-hidden mb-4"
+                                    :class="isDragging ? 'border-rose-500 bg-rose-50 shadow-inner' :
+                                        'border-rose-300 hover:border-rose-500 hover:bg-rose-50/50'"
+                                    @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
+                                    @drop.prevent="isDragging = false; if($event.dataTransfer.files.length) { $refs.sqlInput.files = $event.dataTransfer.files; filename = $event.dataTransfer.files[0].name; }"
                                     @click="$refs.sqlInput.click()">
-                                    <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                    </svg>
-                                    <p x-show="!filename" class="text-xs text-gray-400">Klik atau drag & drop file
-                                        .sql</p>
-                                    <p x-show="filename" class="text-xs font-semibold text-red-700" x-text="filename"
-                                        x-cloak></p>
-                                    <p class="text-xs text-gray-400 mt-1">Maksimal 512 MB</p>
+
+                                    <div class="px-6 py-10 flex flex-col items-center justify-center text-center">
+                                        <div
+                                            class="w-14 h-14 bg-warning-soft text-rose-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                            <svg class="w-7 h-7" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                        </div>
+
+                                        <div x-show="!filename">
+                                            <p class="text-sm font-bold text-rose-900">Pilih File Restore</p>
+                                            <p class="text-xs font-medium text-rose-600/70 mt-1">Klik di sini atau
+                                                tarik file ke kotak ini</p>
+                                        </div>
+
+                                        <div x-show="filename" x-cloak class="w-full">
+                                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                                File Terpilih:</p>
+                                            <p class="text-sm font-bold text-rose-700 bg-rose-100 px-3 py-1.5 rounded-lg inline-block truncate max-w-full"
+                                                x-text="filename"></p>
+                                        </div>
+
+                                        <p
+                                            class="text-[10px] font-bold text-rose-400 mt-4 uppercase tracking-wider border-t border-rose-200 pt-3">
+                                            Format .SQL | Maks 512 MB</p>
+                                    </div>
                                 </div>
 
                                 <input type="file" name="sql_file" accept=".sql" x-ref="sqlInput"
                                     class="hidden" @change="filename = $event.target.files[0]?.name ?? ''">
 
                                 @error('sql_file')
-                                    <p class="mb-2 text-xs text-red-600">{{ $message }}</p>
+                                    <p
+                                        class="mb-4 text-xs font-bold text-rose-600 bg-rose-100/50 p-2 rounded-lg text-center">
+                                        {{ $message }}</p>
                                 @enderror
 
                                 <button type="submit" :disabled="!filename || loading"
-                                    class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white text-sm font-semibold
-                                       rounded-lg hover:bg-red-700 transition-colors
-                                       disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <svg x-show="loading" class="w-4 h-4 animate-spin" fill="none"
+                                    class="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-rose-600 text-white text-sm font-bold rounded-xl hover:bg-rose-700 transition-colors shadow-lg shadow-rose-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg x-show="loading" class="w-5 h-5 animate-spin" fill="none"
                                         viewBox="0 0 24 24" x-cloak>
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor"
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                    </svg>
-                                    <span x-text="loading ? 'Mengvalidasi...' : 'Upload & Lanjutkan'"></span>
+                                    <span x-text="loading ? 'Menyiapkan Data...' : 'Unggah & Mulai Pemulihan'"></span>
                                 </button>
                             </form>
                         @endif
@@ -356,159 +515,208 @@
             </div>
         </div>
 
-        {{-- ═══ TABEL DETAIL DATABASE ═══ --}}
+        {{-- ═══ DETAIL TEKNIS (TABLES) ═══ --}}
         @if ($dbInfo['success'] && !empty($dbInfo['table_list']))
-            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-gray-900">Detail Tabel Database</h3>
-                    <span class="text-xs text-gray-400">Top {{ count($dbInfo['table_list']) }} tabel terbesar</span>
+            <div x-data="{ showDetail: false }"
+                class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+                <div @click="showDetail = !showDetail"
+                    class="px-8 py-5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors select-none">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Rincian Teknis Struktur Tabel</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Top {{ count($dbInfo['table_list']) }} tabel dengan
+                            penyimpanan terbesar. (Hanya untuk keperluan diagnostik).</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 transition-transform duration-300"
+                        :class="showDetail ? 'rotate-180' : ''">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100">
-                                <th
-                                    class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Nama Tabel</th>
-                                <th
-                                    class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">
-                                    Est. Rows</th>
-                                <th
-                                    class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">
-                                    Ukuran</th>
-                                <th
-                                    class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">
-                                    Engine</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            @foreach ($dbInfo['table_list'] as $table)
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-4 py-2.5">
-                                        <span class="font-mono text-xs text-gray-800">{{ $table->table_name }}</span>
-                                    </td>
-                                    <td class="px-4 py-2.5 text-right text-xs font-mono text-gray-600">
-                                        {{ number_format($table->table_rows) }}
-                                    </td>
-                                    <td class="px-4 py-2.5 text-right text-xs font-mono text-gray-600">
-                                        {{ $table->size_kb >= 1024 ? round($table->size_kb / 1024, 2) . ' MB' : $table->size_kb . ' KB' }}
-                                    </td>
-                                    <td class="px-4 py-2.5 text-center">
-                                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">
-                                            {{ $table->engine }}
-                                        </span>
-                                    </td>
+
+                <div x-show="showDetail" x-collapse x-cloak>
+                    <div class="overflow-x-auto border-t border-slate-100 p-4">
+                        <table class="w-full text-sm text-left">
+                            <thead>
+                                <tr class="bg-slate-50 rounded-xl">
+                                    <th
+                                        class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider rounded-l-xl">
+                                        Nama Tabel Sistem</th>
+                                    <th
+                                        class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        Estimasi Baris</th>
+                                    <th
+                                        class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        Kapasitas</th>
+                                    <th
+                                        class="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider rounded-r-xl">
+                                        Engine</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                @foreach ($dbInfo['table_list'] as $table)
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <td class="px-6 py-3">
+                                            <span
+                                                class="font-mono text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md">{{ $table->table_name }}</span>
+                                        </td>
+                                        <td class="px-6 py-3 text-right">
+                                            <span
+                                                class="font-mono text-sm text-slate-600">{{ number_format($table->table_rows) }}</span>
+                                        </td>
+                                        <td class="px-6 py-3 text-right">
+                                            <span class="font-mono text-sm font-bold text-indigo-600">
+                                                {{ $table->size_kb >= 1024 ? round($table->size_kb / 1024, 2) . ' MB' : $table->size_kb . ' KB' }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-3 text-center">
+                                            <span
+                                                class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                                {{ $table->engine }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         @endif
 
 
-        {{-- ═══ MODAL KONFIRMASI RESTORE ═══ --}}
-        <div x-show="restoreModalOpen" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style="background: rgba(0,0,0,0.6);" x-on:keydown.escape.window="restoreModalOpen = false">
+        {{-- ═══ TERMINAL MODAL KONFIRMASI RESTORE ═══ --}}
+        <div x-show="restoreModalOpen" x-cloak x-transition
+            class="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6"
+            style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px);"
+            x-on:keydown.escape.window="restoreModalOpen = false">
 
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" @click.stop>
+            <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden relative border border-rose-500/30"
+                @click.stop x-transition:enter="transition ease-out duration-300 delay-100"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-8"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-8">
 
-                {{-- Header --}}
-                <div class="bg-red-600 px-6 py-5">
-                    <div class="flex items-start gap-3">
-                        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
+                {{-- Header Terminal --}}
+                <div class="bg-rose-600 px-8 py-6 relative overflow-hidden">
+                    <div
+                        class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30">
+                    </div>
+                    <div class="relative z-10 flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm border border-white/30">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-white text-lg">Konfirmasi Restore Database</h3>
-                            <p class="text-red-200 text-xs mt-0.5">Operasi ini tidak dapat dibatalkan</p>
+                            <h3 class="font-black text-white text-xl tracking-wide">PERINGATAN KRITIS</h3>
+                            <p class="text-rose-200 text-sm font-medium mt-0.5">Konfirmasi Penimpaan Database</p>
                         </div>
                     </div>
                 </div>
 
                 @if ($restorePending)
-                    <div class="px-6 py-5 space-y-4">
+                    <div class="px-8 py-6 space-y-6">
 
-                        {{-- File Info --}}
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                        {{-- Info File Yg Akan Direstore --}}
+                        <div class="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
                             <div
-                                class="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
+                                class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                 </svg>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <p class="text-sm font-semibold text-gray-900 truncate">
-                                    {{ $restorePending['original_name'] }}</p>
-                                <p class="text-xs text-gray-400">Ukuran: {{ $restorePending['size_human'] }}</p>
+                                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Membaca
+                                    File:</p>
+                                <p
+                                    class="text-sm font-bold text-slate-900 truncate bg-white px-2 py-1 rounded border border-slate-100 inline-block max-w-full">
+                                    {{ $restorePending['original_name'] }}
+                                </p>
+                                <p class="text-xs font-medium text-slate-500 mt-1">Ukuran Data: <span
+                                        class="text-slate-700 font-bold">{{ $restorePending['size_human'] }}</span>
+                                </p>
                             </div>
                         </div>
 
-                        {{-- Checklist Konsekuensi --}}
-                        <div class="space-y-2">
-                            @foreach (['Seluruh data yang ada saat ini akan DIHAPUS dan diganti', 'Semua tabel database akan di-drop dan dibuat ulang', 'Proses tidak bisa dihentikan setelah dimulai', 'Pastikan file backup berasal dari sistem yang sama'] as $item)
-                                <div class="flex items-start gap-2">
-                                    <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor"
-                                        viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    <p class="text-xs text-gray-700">{{ $item }}</p>
+                        {{-- Syarat dan Ketentuan Mutlak --}}
+                        <div class="space-y-3">
+                            <p class="text-sm font-bold text-rose-900 border-b border-rose-100 pb-2">Saya menyetujui
+                                bahwa:</p>
+                            @foreach (['Seluruh data aplikasi yang ada SAAT INI akan MUSNAH dan ditimpa.', 'Proses pemulihan TIDAK DAPAT DIBATALKAN setelah tombol diklik.', 'Saya telah memastikan file yang diunggah adalah file yang benar.'] as $item)
+                                <div class="flex items-start gap-3">
+                                    <div
+                                        class="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-sm font-medium text-rose-800/90 leading-snug">{{ $item }}
+                                    </p>
                                 </div>
                             @endforeach
                         </div>
 
-                        {{-- Validasi Errors --}}
                         @error('restore_confirm')
-                            <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+                            <div
+                                class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm font-bold text-rose-700 text-center">
                                 {{ $message }}
                             </div>
                         @enderror
 
-                        {{-- Ketik RESTORE --}}
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                Untuk melanjutkan, ketik <code
-                                    class="bg-red-100 text-red-700 px-1 py-0.5 rounded font-bold">RESTORE</code>:
+                        {{-- Input Verifikasi Manual --}}
+                        <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-inner">
+                            <label class="block text-sm font-medium text-slate-300 mb-3 text-center">
+                                Ketik kata sandi darurat <span
+                                    class="text-rose-400 font-bold font-mono text-base bg-rose-400/10 px-2 py-0.5 rounded border border-rose-400/20 mx-1">RESTORE</span>
+                                di bawah ini:
                             </label>
-                            <input type="text" x-model="confirmText" placeholder="Ketik RESTORE di sini..."
-                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-mono
-                               focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                            <p class="mt-1 text-xs text-gray-400">Case-sensitive. Harus persis
-                                <strong>RESTORE</strong>.</p>
+                            <input type="text" x-model="confirmText" placeholder="Ketik persis huruf kapital..."
+                                autocomplete="off"
+                                class="w-full px-4 py-3 bg-slate-800 border-2 border-slate-700 rounded-xl text-center text-xl font-bold font-mono text-white placeholder:text-slate-600 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/20 transition-all uppercase">
                         </div>
                     </div>
 
-                    <div class="px-6 pb-5 flex items-center justify-between gap-3">
-                        {{-- Batal --}}
+                    {{-- Actions --}}
+                    <div
+                        class="px-8 py-5 bg-slate-50 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-center gap-3">
                         <form method="POST" action="{{ route('admin.database.restore.dismiss') }}"
-                            class="flex items-center gap-2">
+                            class="w-full sm:w-1/3">
                             @csrf
                             <button type="submit"
-                                class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                                Batalkan
+                                class="w-full px-5 py-3.5 border border-slate-300 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-100 focus:ring-4 focus:ring-slate-100 transition-colors">
+                                Tolak & Batal
                             </button>
                         </form>
 
-                        {{-- Konfirmasi --}}
-                        <form method="POST" action="{{ route('admin.database.restore.confirm') }}">
+                        <form method="POST" action="{{ route('admin.database.restore.confirm') }}"
+                            class="w-full sm:w-2/3" x-data="{ submitting: false }" @submit="submitting = true">
                             @csrf
                             <input type="hidden" name="confirmation" :value="confirmText">
-                            <button type="submit" :disabled="!canConfirm"
-                                class="flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-bold rounded-lg
-                               hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            <button type="submit" :disabled="!canConfirm || submitting"
+                                class="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-rose-600 text-white text-sm font-black tracking-wide rounded-xl hover:bg-rose-700 shadow-lg shadow-rose-200 focus:ring-4 focus:ring-rose-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+                                <svg x-show="submitting" class="w-5 h-5 animate-spin" fill="none"
+                                    viewBox="0 0 24 24" x-cloak>
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
-                                Ya, Restore Database
+                                <svg x-show="!submitting" class="w-5 h-5" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <span x-text="submitting ? 'MEMPROSES DATA...' : 'EKSEKUSI PEMULIHAN'"></span>
                             </button>
                         </form>
                     </div>

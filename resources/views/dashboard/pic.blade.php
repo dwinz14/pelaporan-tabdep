@@ -91,7 +91,6 @@
                             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Saldo Akhir
                             </p>
                             <div class="flex items-baseline gap-0.5">
-                                <span class="text-lg font-bold text-slate-400">Rp</span>
                                 <p class="text-3xl md:text-4xl font-extrabold font-mono text-slate-900 tracking-tight">
                                     {{ number_format($tab->saldo_akhir, 0, ',', '.') }}
                                 </p>
@@ -176,7 +175,6 @@
                             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Saldo Akhir
                             </p>
                             <div class="flex items-baseline gap-0.5">
-                                <span class="text-lg font-bold text-slate-400">Rp</span>
                                 <p class="text-3xl md:text-4xl font-extrabold font-mono text-slate-900 tracking-tight">
                                     {{ number_format($dep->saldo_akhir, 0, ',', '.') }}
                                 </p>

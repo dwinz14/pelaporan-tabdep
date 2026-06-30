@@ -32,11 +32,6 @@
                         class="w-1.5 h-1.5 rounded-full {{ $isLocked ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse' }}"></span>
                     {{ $periode->status_operasional->label() }}
                 </span>
-
-                <a href="{{ route('kepala.periode.index') }}"
-                    class="text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200/80 px-3.5 py-2 rounded-xl transition-all">
-                    Kembali
-                </a>
             </div>
         </div>
 
@@ -125,13 +120,6 @@
                                     </p>
                                 </div>
                             </div>
-
-                            <button
-                                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-lg
-                           hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-[0_4px_14px_rgba(16,185,129,0.25)]">
-                                Verifikasi Final
-                            </button>
-
                         </div>
                     @elseif(!$isLocked)
                         <div
@@ -189,7 +177,7 @@
 
             <div class="p-6 bg-slate-50/50">
                 {{-- Pivot Table (reuse Livewire) --}}
-                <livewire:akunting.pivot-periode :periode="$periode" />
+                <livewire:akunting.pivot-periode :periode="$periode" :readonly="true" />
             </div>
         </div>
 

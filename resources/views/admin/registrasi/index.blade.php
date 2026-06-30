@@ -83,9 +83,6 @@
                                     <p class="text-sm font-medium text-gray-700">
                                         {{ $user->registered_at->locale('id')->isoFormat('D MMM YYYY') }}
                                     </p>
-                                    <p class="text-xs text-gray-400">
-                                        {{ $user->registered_at->locale('id')->isoFormat('HH:mm') }} WIB
-                                    </p>
                                     <p class="text-xs text-amber-600 font-medium mt-1">
                                         {{ $user->registered_at->diffForHumans() }}
                                     </p>
@@ -142,7 +139,8 @@
                                         <div>
                                             <h3 class="font-semibold text-gray-900">Tolak Pendaftaran</h3>
                                             <p class="text-xs text-gray-500 mt-0.5">{{ $user->name }}
-                                                ({{ $user->nik }})</p>
+                                                ({{ $user->nik }})
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

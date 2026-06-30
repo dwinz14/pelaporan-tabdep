@@ -100,7 +100,7 @@
                                         {{ $data['message'] ?? '' }}
                                     </p>
                                     <p class="text-xs text-gray-400 mt-1.5">
-                                        {{ $notif->created_at->locale('id')->isoFormat('D MMMM Y, HH:mm') }}
+                                        {{ $notif->created_at->locale('id')->isoFormat('D MMMM Y') }}
                                         · {{ $notif->created_at->diffForHumans() }}
                                     </p>
                                 </div>

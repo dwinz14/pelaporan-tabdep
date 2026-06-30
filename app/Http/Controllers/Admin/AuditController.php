@@ -49,13 +49,32 @@ class AuditController extends Controller
             ->orderBy('log_name')
             ->pluck('log_name');
 
+        $totalLogs = Activity::count();
+        $todayLogs = Activity::whereDate('created_at', now()->toDateString())->count();
+        $activeUsersToday = Activity::whereDate('created_at', now()->toDateString())
+            ->where('causer_type', User::class)
+            ->distinct('causer_id')
+            ->count('causer_id');
+        $latestActivityAt = Activity::latest()->first(['created_at'])?->created_at;
+
+        $logSummary = Activity::selectRaw('log_name, COUNT(*) as total')
+            ->groupBy('log_name')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->pluck('total', 'log_name');
+
         return view('admin.audit.index', [
-            'title'    => 'Audit Trail',
-            'subtitle' => 'Log aktivitas seluruh pengguna sistem',
-            'logs'     => $logs,
-            'users'    => $users,
-            'logNames' => $logNames,
-            'filters'  => $request->only(['log_name', 'user_id', 'dari', 'sampai', 'keyword']),
+            'title'            => 'Audit Trail',
+            'subtitle'         => 'Log aktivitas seluruh pengguna sistem',
+            'logs'             => $logs,
+            'users'            => $users,
+            'logNames'         => $logNames,
+            'filters'          => $request->only(['log_name', 'user_id', 'dari', 'sampai', 'keyword']),
+            'totalLogs'        => $totalLogs,
+            'todayLogs'        => $todayLogs,
+            'activeUsersToday' => $activeUsersToday,
+            'latestActivityAt' => $latestActivityAt,
+            'logSummary'       => $logSummary,
         ]);
     }
 }

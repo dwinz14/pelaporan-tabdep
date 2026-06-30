@@ -4,6 +4,9 @@
         showResetAllModal: false,
         showDeactivateAllModal: false,
         showActivateAllModal: false,
+        showResetPasswordModal: false,
+        showToggleModal: false,
+        selectedUser: { action: '' },
         selectedUsers: [],
         selectAll: false,
         toggleAll() {
@@ -203,47 +206,42 @@
                                             </svg>
                                         </a>
 
-                                        <form method="POST" action="{{ route('admin.user.reset-password', $user) }}"
-                                            onsubmit="return confirm('Reset password {{ $user->name }} ke password default?')">
-                                            @csrf
-                                            <button type="submit"
-                                                class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors tooltip"
-                                                title="Reset Password">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                                </svg>
-                                            </button>
-                                        </form>
+                                        <button type="button"
+                                            data-user="{{ json_encode(['id' => $user->id, 'name' => $user->name, 'action' => route('admin.user.reset-password', $user)]) }}"
+                                            @click="selectedUser = JSON.parse($el.dataset.user); showResetPasswordModal = true"
+                                            class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors tooltip"
+                                            title="Reset Password">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                            </svg>
+                                        </button>
 
                                         @if ($user->id !== auth()->id())
-                                            <form method="POST" action="{{ route('admin.user.toggle', $user) }}"
-                                                onsubmit="return confirm('{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} user ini?')">
-                                                @csrf @method('PATCH')
-                                                <button type="submit"
-                                                    class="p-2 text-slate-400 {{ $user->is_active ? 'hover:text-rose-600 hover:bg-rose-50' : 'hover:text-emerald-600 hover:bg-emerald-50' }} rounded-lg transition-colors tooltip"
-                                                    title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} User">
-                                                    @if ($user->is_active)
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                                        </svg>
-                                                    @else
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                    @endif
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                data-user="{{ json_encode(['id' => $user->id, 'name' => $user->name, 'isActive' => $user->is_active, 'action' => route('admin.user.toggle', $user)]) }}"
+                                                @click="selectedUser = JSON.parse($el.dataset.user); showToggleModal = true"
+                                                class="p-2 text-slate-400 {{ $user->is_active ? 'hover:text-rose-600 hover:bg-rose-50' : 'hover:text-emerald-600 hover:bg-emerald-50' }} rounded-lg transition-colors tooltip"
+                                                title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} User">
+                                                @if ($user->is_active)
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                @endif
+                                            </button>
                                         @else
-                                            {{-- Placeholder to keep alignment if it's current user --}}
                                             <div class="w-8"></div>
                                         @endif
                                     </div>
@@ -287,7 +285,7 @@
         </div>
 
 
-        {{-- ═══ FLOATING BULK ACTION BAR (MODERN UX) ═══ --}}
+        {{-- ═══ FLOATING BULK ACTION BAR ═══ --}}
         <div x-show="selectedUsers.length > 0" x-cloak x-transition:enter="transition ease-out duration-300 transform"
             x-transition:enter-start="translate-y-full opacity-0" x-transition:enter-end="translate-y-0 opacity-100"
             x-transition:leave="transition ease-in duration-200 transform"
@@ -499,6 +497,104 @@
                         <button type="submit"
                             class="w-full sm:w-1/2 px-4 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all focus:outline-none focus:ring-4 focus:ring-emerald-100">
                             Ya, Aktifkan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- ═══════════ MODAL: RESET PASSWORD ═══════════ --}}
+        <div x-show="showResetPasswordModal" x-cloak x-transition
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);"
+            x-on:keydown.escape.window="showResetPasswordModal = false">
+
+            <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden relative border border-white/50"
+                @click.stop x-transition:enter="transition ease-out duration-300 delay-100"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-8"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-8">
+
+                <div class="px-8 pt-8 pb-6 text-center">
+                    <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
+                        <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Reset Password</h3>
+                    <p class="text-sm text-slate-500 mb-5">Password untuk user <strong x-text="selectedUser?.name" class="text-slate-800"></strong> akan direset kembali menjadi default.</p>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 text-center">
+                        Password Default: <code class="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-mono">{{ \App\Services\UserService::DEFAULT_PASSWORD }}</code>
+                    </div>
+                </div>
+
+                <form method="POST" :action="selectedUser?.action">
+                    @csrf
+                    <div class="px-8 pb-8 flex flex-col-reverse sm:flex-row items-center gap-3">
+                        <button type="button" @click="showResetPasswordModal = false"
+                            class="w-full sm:w-1/2 px-4 py-2.5 rounded-xl font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="w-full sm:w-1/2 px-4 py-2.5 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-200 transition-all focus:outline-none focus:ring-4 focus:ring-amber-100">
+                            Ya, Reset Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- ═══════════ MODAL: AKTIFKAN / NONAKTIFKAN USER ═══════════ --}}
+        <div x-show="showToggleModal" x-cloak x-transition
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            style="background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);"
+            x-on:keydown.escape.window="showToggleModal = false">
+
+            <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden relative border border-white/50"
+                @click.stop x-transition:enter="transition ease-out duration-300 delay-100"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-8"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-8">
+
+                <div class="px-8 pt-8 pb-6 text-center">
+                    <div x-show="selectedUser?.isActive" class="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
+                        <svg class="w-8 h-8 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                    </div>
+                    <div x-show="!selectedUser?.isActive" class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
+                        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2" x-text="selectedUser?.isActive ? 'Nonaktifkan User' : 'Aktifkan User'"></h3>
+                    <p class="text-sm text-slate-500 mb-5">
+                        <span x-text="selectedUser?.isActive ? 'Nonaktifkan user ' + selectedUser?.name + '? User tidak dapat login sampai diaktifkan kembali.' : 'Aktifkan kembali user ' + selectedUser?.name + '? User dapat login kembali setelah diaktifkan.'"></span>
+                    </p>
+                </div>
+
+                <form method="POST" :action="selectedUser?.action">
+                    @csrf @method('PATCH')
+                    <div class="px-8 pb-8 flex flex-col-reverse sm:flex-row items-center gap-3">
+                        <button type="button" @click="showToggleModal = false"
+                            class="w-full sm:w-1/2 px-4 py-2.5 rounded-xl font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            :class="{
+                                'bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-200 focus:ring-rose-100': selectedUser?.isActive,
+                                'bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 focus:ring-emerald-100': !selectedUser?.isActive
+                            }"
+                            class="w-full sm:w-1/2 px-4 py-2.5 rounded-xl font-bold text-white transition-all focus:outline-none focus:ring-4"
+                            x-text="selectedUser?.isActive ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan'">
                         </button>
                     </div>
                 </form>

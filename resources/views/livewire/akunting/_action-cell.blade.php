@@ -12,8 +12,7 @@
 
     {{-- Action Buttons: hanya jika submitted, tidak locked, dan tidak readonly --}}
     @if ($status === \App\Enums\StatusVerifikasi::Submitted && !$locked && !($readonly ?? false))
-        <button type="button" wire:click="approve({{ $laporan->id }})" wire:loading.attr="disabled"
-            wire:confirm="Setujui laporan ini?"
+        <button type="button" wire:click="openApprove({{ $laporan->id }})" wire:loading.attr="disabled"
             class="w-full px-2 py-1 bg-emerald-600 text-white text-xs font-medium rounded
                    hover:bg-emerald-700 transition-colors disabled:opacity-60 whitespace-nowrap">
             ✓ Setujui
@@ -28,7 +27,7 @@
     {{-- Info tanggal verifikasi --}}
     @if ($status === \App\Enums\StatusVerifikasi::VerifiedAccounting && $laporan->tgl_verifikasi_akunting)
         <p class="text-xs text-gray-400 text-center">
-            {{ $laporan->tgl_verifikasi_akunting->format('d/m H:i') }}
+            {{ $laporan->tgl_verifikasi_akunting->format('d/m/y') }}
         </p>
     @endif
 </div>
