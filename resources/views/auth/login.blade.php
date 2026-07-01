@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — SI Stok Tab-Dep</title>
+    <title>Login TabDep-Hub</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- Custom Font (Opsional, menggunakan font Inter untuk look yang lebih bersih) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,18 +72,18 @@
         <div class="relative z-10 w-full max-w-lg px-12 fade-in-up">
             <div
                 class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 border border-white/20 shadow-2xl">
-                <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                    </path>
+                <x-application-logo class="w-12 h-12 text-white" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                </path>
                 </svg>
             </div>
 
-            <h1 class="text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4 leading-tight">
-                Sistem Pelaporan<br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-                    Stok Tabungan & Deposito
+            <h1 class="text-4xl lg:text-4xl font-extrabold text-white tracking-tight leading-none mb-4">
+                TABDEP-HUB
+                <span
+                    class="block mt-2 text-2xl lg:text-lg font-bold tracking-normal text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+                    Sistem Pelaporan Stok Tabungan & Deposito
                 </span>
             </h1>
 
