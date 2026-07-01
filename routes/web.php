@@ -124,8 +124,13 @@ Route::middleware('auth')->group(function () {
             Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
 
             // import
-            Route::get('/import',  [ImportController::class, 'index'])->name('import.index');
-            Route::post('/import', [ImportController::class, 'store'])->name('import.store');
+            Route::prefix('import')->name('import.')->group(function () {
+                Route::get('/',                 [ImportController::class, 'index'])->name('index');
+                Route::get('/template',         [ImportController::class, 'downloadTemplate'])->name('template');
+                Route::post('/validate',        [ImportController::class, 'validateUpload'])->name('validate');
+                Route::post('/confirm',         [ImportController::class, 'confirm'])->name('confirm');
+                Route::post('/cancel',          [ImportController::class, 'cancel'])->name('cancel');
+            });
 
             // database maintenance
             Route::prefix('database')->name('database.')->group(function () {

@@ -58,7 +58,7 @@
             <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none">
             </div>
 
-            <div class="relative z-10 flex items-start gap-4">
+            <div class="relative z-5 flex items-start gap-4">
                 <div
                     class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-0.5">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

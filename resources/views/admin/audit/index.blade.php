@@ -191,7 +191,6 @@
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wider text-[--color-text-muted]">Filter Pencarian
                         </p>
-                        <h2 class="text-base font-bold text-[--color-text-primary]">Persempit jejak aktivitas</h2>
                     </div>
                     @if ($activeFilters->isNotEmpty())
                         <a href="{{ route('admin.audit.index') }}"
@@ -217,20 +216,6 @@
                                 <option value="{{ $ln }}"
                                     {{ ($filters['log_name'] ?? '') === $ln ? 'selected' : '' }}>
                                     {{ ucfirst($ln) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold text-slate-600">User</label>
-                        <select name="user_id"
-                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="">Semua user</option>
-                            @foreach ($users as $u)
-                                <option value="{{ $u->id }}"
-                                    {{ ($filters['user_id'] ?? '') == $u->id ? 'selected' : '' }}>
-                                    {{ $u->nik }} - {{ $u->name }}
                                 </option>
                             @endforeach
                         </select>

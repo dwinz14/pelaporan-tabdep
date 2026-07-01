@@ -329,5 +329,15 @@
             </form>
         </div>
     </div>
-
+    <script>
+        window.maskNik = function(input) {
+            let value = input.value.toUpperCase();
+            let prefix = value.substring(0, 2).replace(/[^A-Z]/g, "");
+            let suffix = value
+                .substring(2)
+                .replace(/[^0-9]/g, "")
+                .substring(0, 9);
+            input.value = prefix + suffix;
+        };
+    </script>
 </x-app-layout>

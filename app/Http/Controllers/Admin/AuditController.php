@@ -20,12 +20,6 @@ class AuditController extends Controller
             $query->where('log_name', $request->string('log_name')->toString());
         }
 
-        // Filter: causer (user)
-        if ($request->filled('user_id')) {
-            $query->where('causer_id', $request->integer('user_id'))
-                ->where('causer_type', 'App\\Models\\User');
-        }
-
         // Filter: tanggal mulai
         if ($request->filled('dari')) {
             $query->whereDate('created_at', '>=', $request->string('dari')->toString());
@@ -69,7 +63,7 @@ class AuditController extends Controller
             'logs'             => $logs,
             'users'            => $users,
             'logNames'         => $logNames,
-            'filters'          => $request->only(['log_name', 'user_id', 'dari', 'sampai', 'keyword']),
+            'filters'          => $request->only(['log_name', 'dari', 'sampai', 'keyword']),
             'totalLogs'        => $totalLogs,
             'todayLogs'        => $todayLogs,
             'activeUsersToday' => $activeUsersToday,
