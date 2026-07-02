@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\PeriodeController;
 use App\Http\Controllers\Admin\RegistrasiController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\UserMonitorController;
 use App\Http\Controllers\Akunting\AkuntingPeriodeController;
 use App\Http\Controllers\Akunting\ExportController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -144,6 +145,9 @@ Route::middleware('auth')->group(function () {
                 Route::post('/restore/confirm',          [DatabaseMaintenanceController::class, 'confirmRestore'])->name('restore.confirm');
                 Route::post('/restore/dismiss',          [DatabaseMaintenanceController::class, 'dismissRestore'])->name('restore.dismiss');
             });
+
+            // user monitorig
+            Route::get('/user-monitor', [UserMonitorController::class, 'index'])->name('user-monitor.index');
         });
 });
 

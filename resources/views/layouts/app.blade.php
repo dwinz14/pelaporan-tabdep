@@ -239,8 +239,14 @@
                     <x-sidebar-divider label="Master Data" />
                     <x-sidebar-item route="admin.cabang.index" icon="office-building" label="Manajemen Cabang"
                         activeOn="admin.cabang.*" />
-                    <x-sidebar-item route="admin.user.index" icon="users" label="Manajemen User"
-                        activeOn="admin.user.*" />
+                    {{-- Manajemen User --}}
+                    <x-sidebar-dropdown label="Manajemen User" icon="users" :activeOn="['admin.user.*', 'admin.user-monitor.*']">
+                        <x-sidebar-item route="admin.user.index" icon="users" label="Master User"
+                            activeOn="admin.user.*" />
+
+                        <x-sidebar-item route="admin.user-monitor.index" icon="chart-bar" label="Monitoring User"
+                            activeOn="admin.user-monitor.*" :badge="$activeSesiCount" />
+                    </x-sidebar-dropdown>
                     <x-sidebar-item route="admin.registrasi.index" icon="users" label="Registrasi User"
                         activeOn="admin.registrasi.*" :badge="$pendingCount > 0 ? $pendingCount : null" />
                     <x-sidebar-divider label="Operasional" />
@@ -480,7 +486,7 @@
             });
         });
     </script>
-
+    <script defer src="{{ asset('js/alpine-collapse.js') }}"></script>
 </body>
 
 </html>

@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
@@ -45,6 +46,25 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('layouts.app', function ($view) {
             $view->with('pendingCount', User::where('registration_status', 'pending')->where('is_active', false)->count());
+        });
+
+        View::composer('layouts.*', function ($view) {
+
+            $activeSesiCount = 0;
+
+            if (config('session.driver') === 'database') {
+                $activeSesiCount = DB::table('sessions')
+                    ->whereNotNull('user_id')
+                    ->where('id', '!=', session()->getId())
+                    ->where(
+                        'last_activity',
+                        '>=',
+                        now()->subMinutes(config('session.lifetime'))->timestamp
+                    )
+                    ->count();
+            }
+
+            $view->with('activeSesiCount', $activeSesiCount);
         });
     }
 }
