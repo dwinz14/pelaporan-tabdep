@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserMonitorController;
 use App\Http\Controllers\Akunting\AkuntingPeriodeController;
 use App\Http\Controllers\Akunting\ExportController;
+use App\Http\Controllers\Akunting\MonitoringController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Kepala\KepalaPeriodeController;
 use App\Http\Controllers\DashboardController;
@@ -71,6 +72,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/periode', [AkuntingPeriodeController::class, 'index'])->name('periode.index');
             Route::get('/periode/{periode}', [AkuntingPeriodeController::class, 'show'])->name('periode.show');
             Route::get('/periode/{periode}/export', [ExportController::class, 'exportPeriode'])->name('periode.export');
+            //monitoring stok
+            Route::get('/monitoring',            [MonitoringController::class, 'index'])->name('monitoring.index');
+Route::get('/monitoring/{cabang}',   [MonitoringController::class, 'show'])->name('monitoring.show');
         });
 
     // Kepala Operasional

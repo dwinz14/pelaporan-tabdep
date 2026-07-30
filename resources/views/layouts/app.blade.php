@@ -220,6 +220,9 @@
                 {{-- ── Akunting ── --}}
                 @if ($user->isAkunting())
                     <x-sidebar-item route="akunting.dashboard" icon="grid" label="Dashboard" />
+                    <x-sidebar-divider label="Monitoring" />
+                    <x-sidebar-item route="akunting.monitoring.index" icon="chart-bar" label="Tabungan & Deposito"
+                        activeOn="akunting.monitoring.*" />
                     <x-sidebar-divider label="Verifikasi" />
                     <x-sidebar-item route="akunting.periode.index" icon="calendar" label="Daftar Periode"
                         activeOn="akunting.periode.*" />
