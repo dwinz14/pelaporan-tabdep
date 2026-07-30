@@ -2,228 +2,169 @@
 
 namespace App\Livewire\Admin;
 
-use App\Enums\UserRole;
+use App\Models\Cabang;
 use App\Models\User;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Spatie\Activitylog\Models\Activity;
+use Livewire\WithPagination;
 
 class UserMonitor extends Component
 {
-    // ─── Tab ──────────────────────────────────────────────────
-    #[Url(as: 'tab')]
-    public string $activeTab = 'sessions';
+    use WithPagination;
 
-    // ─── Log Filter ───────────────────────────────────────────
-    #[Url(as: 'user')]
-    public ?int $selectedUserId = null;
+    #[Url(as: 'q')]
+    public string $search = '';
 
-    #[Url(as: 'log_name')]
-    public string $selectedLogName = '';
+    #[Url(as: 'role')]
+    public string $role = '';
 
-    #[Url(as: 'dari')]
-    public string $logDari = '';
+    #[Url(as: 'cabang')]
+    public string $cabang = '';
 
-    #[Url(as: 'sampai')]
-    public string $logSampai = '';
-
-    public int $logPage = 1;
     public int $perPage = 25;
 
-    // ─── UI State ─────────────────────────────────────────────
     public ?string $flashSuccess = null;
     public ?string $flashError   = null;
 
-    public function mount(): void
+    public function updatedSearch(): void
     {
-        $this->logDari   = now()->subDays(30)->format('Y-m-d');
-        $this->logSampai = now()->format('Y-m-d');
+        $this->resetPage();
     }
 
-    // ─────────────────────────────────────────────────────────
-    // COMPUTED: SESSIONS
-    // ─────────────────────────────────────────────────────────
+    public function updatedRole(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCabang(): void
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'role', 'cabang']);
+        $this->resetPage();
+    }
 
     #[Computed(cache: false)]
-    public function activeSessions(): Collection
+    public function cabangs()
+    {
+        return Cabang::orderBy('nama_cabang')->get();
+    }
+
+    #[Computed(cache: false)]
+    public function users()
     {
         $lifetime = (int) config('session.lifetime', 120);
+        $activeTimestamp = now()->subMinutes($lifetime)->timestamp;
 
-        $sessions = DB::table('sessions')
-            ->whereNotNull('user_id')
-            ->where('last_activity', '>=', now()->subMinutes($lifetime)->timestamp)
-            ->orderBy('last_activity', 'desc')
-            ->get();
+        $query = User::query()
+            ->select('users.*')
+            ->with('cabang');
 
-        $userIds = $sessions->pluck('user_id')->unique();
-        $users   = User::whereIn('id', $userIds)
-            ->with('cabang')
-            ->get()
-            ->keyBy('id');
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhere('nik', 'like', '%' . $this->search . '%');
+            });
+        }
+        if ($this->role) {
+            $query->where('role', $this->role);
+        }
+        if ($this->cabang) {
+            $query->where('id_cabang', $this->cabang);
+        }
 
-        return $sessions->map(function ($session) use ($users) {
-            $user    = $users->get($session->user_id);
-            $payload = $this->decodeSessionPayload($session->payload);
+        // Subqueries for latest activity info
+        $query->selectSub(
+            DB::table('sessions')
+                ->whereColumn('user_id', 'users.id')
+                ->select('id')
+                ->orderBy('last_activity', 'desc')
+                ->limit(1),
+            'latest_session_id'
+        );
 
-            return (object) [
-                'session_id'    => $session->id,
-                'user_id'       => $session->user_id,
-                'user'          => $user,
-                'ip_address'    => $session->ip_address,
-                'user_agent'    => $session->user_agent,
-                'browser'       => $this->parseBrowser($session->user_agent),
-                'os'            => $this->parseOS($session->user_agent),
-                'last_activity' => \Carbon\Carbon::createFromTimestamp($session->last_activity),
-                'is_current'    => $session->id === session()->getId(),
-            ];
+        $query->selectSub(
+            DB::table('sessions')
+                ->whereColumn('user_id', 'users.id')
+                ->select('last_activity')
+                ->orderBy('last_activity', 'desc')
+                ->limit(1),
+            'latest_session_activity'
+        );
+
+        $query->selectSub(
+            DB::table('activity_log')
+                ->whereColumn('causer_id', 'users.id')
+                ->where('causer_type', User::class)
+                ->select('created_at')
+                ->orderBy('created_at', 'desc')
+                ->limit(1),
+            'latest_log_activity'
+        );
+
+        // Sort by Online > Session Activity > Log Activity
+        $query->orderByRaw('(latest_session_activity >= ?) DESC', [$activeTimestamp])
+              ->orderBy('latest_session_activity', 'desc')
+              ->orderBy('latest_log_activity', 'desc');
+
+        $paginated = $query->paginate($this->perPage);
+
+        // Enrich the collection with session info
+        $paginated->getCollection()->transform(function ($user) use ($activeTimestamp) {
+            $isOnline = $user->latest_session_activity >= $activeTimestamp;
+            $user->is_online = $isOnline;
+            $user->last_seen = $isOnline 
+                ? \Carbon\Carbon::createFromTimestamp($user->latest_session_activity)
+                : ($user->latest_log_activity ? \Carbon\Carbon::parse($user->latest_log_activity) : null);
+            
+            if ($isOnline && $user->latest_session_id) {
+                $session = DB::table('sessions')->where('id', $user->latest_session_id)->first();
+                if ($session) {
+                    $user->session_id = $session->id;
+                    $user->ip_address = $session->ip_address;
+                    $user->user_agent = $session->user_agent;
+                    $user->browser    = $this->parseBrowser($session->user_agent);
+                    $user->os         = $this->parseOS($session->user_agent);
+                    $user->is_current = $session->id === session()->getId();
+                }
+            }
+
+            return $user;
         });
+
+        return $paginated;
     }
-
-    #[Computed(cache: false)]
-    public function sessionStats(): array
-    {
-        $sessions = $this->activeSessions;
-
-        return [
-            'total'   => $sessions->count(),
-            'by_role' => $sessions->groupBy(fn($s) => $s->user?->role?->label() ?? 'Tidak Dikenal')
-                ->map->count(),
-        ];
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // COMPUTED: LOGS
-    // ─────────────────────────────────────────────────────────
-
-    #[Computed(cache: false)]
-    public function allUsers(): Collection
-    {
-        return User::orderBy('name')
-            ->with('cabang')
-            ->get(['id', 'name', 'nik', 'role', 'id_cabang']);
-    }
-
-    #[Computed(cache: false)]
-    public function selectedUser(): ?User
-    {
-        if (! $this->selectedUserId) return null;
-        return User::with('cabang')->find($this->selectedUserId);
-    }
-
-    #[Computed(cache: false)]
-    public function userActivityStats(): ?array
-    {
-        if (! $this->selectedUserId) return null;
-
-        $total = Activity::where('causer_id', $this->selectedUserId)
-            ->where('causer_type', 'App\\Models\\User')
-            ->count();
-
-        $last30 = Activity::where('causer_id', $this->selectedUserId)
-            ->where('causer_type', 'App\\Models\\User')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->count();
-
-        $lastActivity = Activity::where('causer_id', $this->selectedUserId)
-            ->where('causer_type', 'App\\Models\\User')
-            ->latest()
-            ->first();
-
-        $byCategory = Activity::where('causer_id', $this->selectedUserId)
-            ->where('causer_type', 'App\\Models\\User')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->select('log_name', DB::raw('count(*) as total'))
-            ->groupBy('log_name')
-            ->pluck('total', 'log_name');
-
-        return [
-            'total'         => $total,
-            'last_30'       => $last30,
-            'last_activity' => $lastActivity,
-            'by_category'   => $byCategory,
-        ];
-    }
-
-    #[Computed(cache: false)]
-    public function logNames(): Collection
-    {
-        $q = Activity::query();
-
-        if ($this->selectedUserId) {
-            $q->where('causer_id', $this->selectedUserId)
-                ->where('causer_type', 'App\\Models\\User');
-        }
-
-        return $q->select('log_name')
-            ->distinct()
-            ->orderBy('log_name')
-            ->pluck('log_name');
-    }
-
-    #[Computed(cache: false)]
-    public function userLogs()
-    {
-        $q = Activity::with('causer')
-            ->latest();
-
-        if ($this->selectedUserId) {
-            $q->where('causer_id', $this->selectedUserId)
-                ->where('causer_type', 'App\\Models\\User');
-        }
-
-        if ($this->selectedLogName) {
-            $q->where('log_name', $this->selectedLogName);
-        }
-
-        if ($this->logDari) {
-            $q->whereDate('created_at', '>=', $this->logDari);
-        }
-
-        if ($this->logSampai) {
-            $q->whereDate('created_at', '<=', $this->logSampai);
-        }
-
-        return $q->paginate($this->perPage, ['*'], 'page', $this->logPage);
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // ACTIONS
-    // ─────────────────────────────────────────────────────────
 
     public function forceLogout(string $sessionId): void
     {
         $this->resetFlash();
 
-        // Pastikan session bukan milik admin yang sedang login
         if ($sessionId === session()->getId()) {
             $this->flashError = 'Anda tidak dapat me-logout sesi Anda sendiri.';
             return;
         }
 
-        // Cari session di DB
         $session = DB::table('sessions')->where('id', $sessionId)->first();
         if (! $session) {
             $this->flashError = 'Sesi tidak ditemukan atau sudah berakhir.';
             return;
         }
 
-        // Ambil info user untuk log
         $targetUser = User::find($session->user_id);
-
-        // Hapus session dari database
         DB::table('sessions')->where('id', $sessionId)->delete();
 
-        // Log aktivitas
         activity('monitoring')
             ->causedBy(auth()->user())
             ->withProperties([
                 'target_user'   => $targetUser?->name,
                 'target_nik'    => $targetUser?->nik,
                 'target_ip'     => $session->ip_address,
-                'session_id'    => substr($sessionId, 0, 8) . '...', // partial untuk keamanan
+                'session_id'    => substr($sessionId, 0, 8) . '...',
             ])
             ->log("Force logout dilakukan terhadap {$targetUser?->name} ({$targetUser?->nik}) dari IP {$session->ip_address}");
 
@@ -248,121 +189,47 @@ class UserMonitor extends Component
         $this->flashSuccess = "{$deleted} sesi user berhasil diterminasi. Hanya sesi Anda yang tersisa.";
     }
 
-    // ─── Log Filter Helpers ───────────────────────────────────
-
-    public function updatedSelectedUserId(): void
-    {
-        $this->logPage = 1;
-    }
-
-    public function updatedSelectedLogName(): void
-    {
-        $this->logPage = 1;
-    }
-
-    public function updatedLogDari(): void
-    {
-        $this->logPage = 1;
-    }
-
-    public function updatedLogSampai(): void
-    {
-        $this->logPage = 1;
-    }
-
-    public function previousPage(): void
-    {
-        if ($this->logPage > 1) $this->logPage--;
-    }
-
-    public function nextPage(int $lastPage): void
-    {
-        if ($this->logPage < $lastPage) $this->logPage++;
-    }
-
-    public function resetLogFilter(): void
-    {
-        $this->selectedUserId   = null;
-        $this->selectedLogName  = '';
-        $this->logDari          = now()->subDays(30)->format('Y-m-d');
-        $this->logSampai        = now()->format('Y-m-d');
-        $this->logPage          = 1;
-    }
-    // ─────────────────────────────────────────────────────────
-    // PRIVATE HELPERS
-    // ─────────────────────────────────────────────────────────
-
     private function resetFlash(): void
     {
         $this->flashSuccess = null;
         $this->flashError   = null;
     }
 
-    private function decodeSessionPayload(string $payload): array
-    {
-        try {
-            return unserialize(base64_decode($payload)) ?: [];
-        } catch (\Exception) {
-            return [];
-        }
-    }
-
     private function parseBrowser(string $ua): string
     {
         $ua = strtolower($ua);
-
         return match (true) {
             str_contains($ua, 'edg/')           => 'Edge',
-            str_contains($ua, 'opr/')
-                || str_contains($ua, 'opera')   => 'Opera',
-            str_contains($ua, 'chrome/')
-                && str_contains($ua, 'safari/') => 'Chrome',
+            str_contains($ua, 'opr/') || str_contains($ua, 'opera') => 'Opera',
+            str_contains($ua, 'chrome/') && str_contains($ua, 'safari/') => 'Chrome',
             str_contains($ua, 'firefox/')       => 'Firefox',
-            str_contains($ua, 'safari/')
-                && ! str_contains($ua, 'chrome') => 'Safari',
-            str_contains($ua, 'msie')
-                || str_contains($ua, 'trident') => 'Internet Explorer',
+            str_contains($ua, 'safari/') && !str_contains($ua, 'chrome') => 'Safari',
+            str_contains($ua, 'msie') || str_contains($ua, 'trident') => 'Internet Explorer',
             str_contains($ua, 'curl/')          => 'cURL',
             str_contains($ua, 'postman')        => 'Postman',
             default                             => 'Browser Lain',
         };
     }
+
     private function parseOS(string $ua): string
     {
         $ua = strtolower($ua);
-
         return match (true) {
-            // 1. Cek Android dulu (karena Android juga mengandung kata 'linux')
             str_contains($ua, 'android')       => 'Android',
-
-            // 2. Cek iOS & Perangkat Apple Mobile
             str_contains($ua, 'iphone')        => 'iOS (iPhone)',
             str_contains($ua, 'ipad')          => 'iOS (iPad)',
-
-            // 3. Trick untuk mendeteksi iPadOS 13+ (Deteksi Layar Sentuh pada UA Mac)
-            (str_contains($ua, 'macintosh') || str_contains($ua, 'mac os x'))
-                && str_contains($ua, 'macintosh') && preg_match('/applewebkit.*version\/.*safari/i', $ua) && !str_contains($ua, 'realtouch')
-            => (str_contains($ua, 'macintosh') && isset($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) && json_decode($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) === 'iOS') ? 'iOS (iPad)' : 'macOS',
-            // Catatan: Jika tidak mau seribet ini untuk iPad, pakai urutan di bawah ini saja.
-
-            // 4. Cek macOS versi standar
-            str_contains($ua, 'macintosh')
-                || str_contains($ua, 'mac os x') => 'macOS',
-
-            // 5. Cek Windows (Urutan dari yang paling spesifik ke umum)
+            (str_contains($ua, 'macintosh') || str_contains($ua, 'mac os x')) && str_contains($ua, 'macintosh') && preg_match('/applewebkit.*version\/.*safari/i', $ua) && !str_contains($ua, 'realtouch') => (str_contains($ua, 'macintosh') && isset($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) && json_decode($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) === 'iOS') ? 'iOS (iPad)' : 'macOS',
+            str_contains($ua, 'macintosh') || str_contains($ua, 'mac os x') => 'macOS',
             str_contains($ua, 'windows nt 10') => 'Windows 10/11',
             str_contains($ua, 'windows nt 6.3') => 'Windows 8.1',
             str_contains($ua, 'windows nt 6.1') => 'Windows 7',
             str_contains($ua, 'windows')       => 'Windows',
-
-            // 6. Cek Linux Desktop (Harus di bawah Android, karena Android itu berbasis Linux)
             str_contains($ua, 'linux')         => 'Linux',
-
             default                            => 'OS Lain',
         };
     }
 
-    public function render(): \Illuminate\View\View
+    public function render()
     {
         return view('livewire.admin.user-monitor');
     }

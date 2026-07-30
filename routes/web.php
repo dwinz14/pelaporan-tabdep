@@ -148,6 +148,7 @@ Route::middleware('auth')->group(function () {
 
             // user monitorig
             Route::get('/user-monitor', [UserMonitorController::class, 'index'])->name('user-monitor.index');
+            Route::get('/user-monitor/{user}/logs', [UserMonitorController::class, 'show'])->name('user-monitor.show');
         });
 });
 

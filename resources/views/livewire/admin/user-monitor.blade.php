@@ -1,552 +1,434 @@
-<div wire:poll.60s="$refresh">
+<div wire:poll.60s="$refresh" class="space-y-6 relative pb-10" x-data="{
+    showForceLogoutModal: false,
+    showForceLogoutAllModal: false,
+    selectedSessionId: '',
+    selectedUserName: ''
+}">
 
-    {{-- ═══ FLASH ═══ --}}
-    @if ($flashSuccess)
-        <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 5000)"
-            class="mb-4 p-3 bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg flex items-center gap-2">
-            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clip-rule="evenodd" />
-            </svg>
-            {{ $flashSuccess }}
-        </div>
-    @endif
-
-    @if ($flashError)
-        <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 5000)"
-            class="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg flex items-center gap-2">
-            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd" />
-            </svg>
-            {{ $flashError }}
-        </div>
-    @endif
-
-    {{-- ═══ TABS ═══ --}}
-    <div class="flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit">
-        <button type="button" wire:click="$set('activeTab', 'sessions')"
-            class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all
-                   {{ $activeTab === 'sessions' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            Sesi Aktif
-            @if ($this->sessionStats['total'] > 0)
-                <span class="px-1.5 py-0.5 text-xs rounded-full font-semibold bg-emerald-100 text-emerald-700">
-                    {{ $this->sessionStats['total'] }}
-                </span>
-            @endif
-        </button>
-
-        <button type="button" wire:click="$set('activeTab', 'logs')"
-            class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all
-                   {{ $activeTab === 'logs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Log Aktivitas
-        </button>
-    </div>
-
-
-    {{-- ══════════════════════ TAB: SESI AKTIF ══════════════════════ --}}
-    @if ($activeTab === 'sessions')
-
-        {{-- Stats Row --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-            <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-                <div class="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                </div>
-                <div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $this->sessionStats['total'] }}</p>
-                    <p class="text-xs text-gray-500">Sesi Aktif</p>
-                </div>
-            </div>
-
-            @foreach ($this->sessionStats['by_role'] as $role => $count)
-                <div class="bg-white rounded-xl border border-gray-200 p-4">
-                    <p class="text-2xl font-bold text-gray-900">{{ $count }}</p>
-                    <p class="text-xs text-gray-500">{{ $role }}</p>
-                </div>
-            @endforeach
-        </div>
-
-        {{-- Toolbar --}}
-        <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
-            <div class="flex items-center gap-2 text-xs text-gray-400">
-                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                        clip-rule="evenodd" />
-                </svg>
-                Auto-refresh setiap 60 detik
-            </div>
-
-            @if ($this->sessionStats['total'] > 1)
-                <button type="button" wire:click="forceLogoutAll"
-                    wire:confirm="Logout SEMUA user selain Anda? Tindakan ini tidak dapat dibatalkan."
-                    class="flex items-center gap-1.5 px-3 py-1.5 border border-red-300 text-red-600 text-xs
-                           font-semibold rounded-lg hover:bg-red-50 transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Force Logout Semua User
-                </button>
-            @endif
-        </div>
-
-        {{-- Session Cards --}}
-        @if ($this->activeSessions->isEmpty())
-            <div class="bg-white rounded-xl border border-gray-200 p-10 text-center">
-                <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-                <p class="text-sm font-medium text-gray-500">Tidak ada sesi aktif saat ini</p>
-                <p class="text-xs text-gray-400 mt-1">Selain sesi Anda sendiri</p>
-            </div>
-        @else
-            <div class="space-y-3">
-                @foreach ($this->activeSessions as $session)
-                    @php
-                        $roleColor = match ($session->user?->role) {
-                            \App\Enums\UserRole::PicCabang => 'bg-sky-100 text-sky-800',
-                            \App\Enums\UserRole::Akunting => 'bg-emerald-100 text-emerald-800',
-                            \App\Enums\UserRole::KepalaOperasional => 'bg-amber-100 text-amber-800',
-                            \App\Enums\UserRole::SuperAdmin => 'bg-rose-100 text-rose-800',
-                            default => 'bg-gray-100 text-gray-600',
-                        };
-                    @endphp
-
-                    <div
-                        class="bg-white rounded-xl border {{ $session->is_current ? 'border-indigo-300 ring-1 ring-indigo-200' : 'border-gray-200' }} overflow-hidden">
-                        <div class="flex items-start gap-4 p-4">
-
-                            {{-- Avatar --}}
-                            <div
-                                class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-white
-                                        {{ $session->is_current ? 'bg-indigo-600' : 'bg-gray-700' }}">
-                                {{ strtoupper(substr($session->user?->name ?? '?', 0, 2)) }}
-                            </div>
-
-                            {{-- Info Utama --}}
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <p class="font-semibold text-gray-900 text-sm">
-                                        {{ $session->user?->name ?? 'Unknown' }}</p>
-                                    @if ($session->is_current)
-                                        <span
-                                            class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
-                                            ● Sesi Anda
-                                        </span>
-                                    @endif
-                                    <span class="text-xs {{ $roleColor }} px-2 py-0.5 rounded-full font-medium">
-                                        {{ $session->user?->roleLabel() ?? '—' }}
-                                    </span>
-                                    @if ($session->user?->cabang)
-                                        <span class="text-xs text-gray-500">
-                                            {{ $session->user->cabang->kode_cabang }} —
-                                            {{ $session->user->cabang->nama_cabang }}
-                                        </span>
-                                    @endif
-                                </div>
-
-                                <p class="text-xs font-mono text-gray-400 mt-0.5">{{ $session->user?->nik ?? '—' }}</p>
-
-                                {{-- Detail Teknis --}}
-                                <div class="flex items-center gap-4 mt-2 flex-wrap">
-                                    <span class="flex items-center gap-1 text-xs text-gray-500">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                                        </svg>
-                                        {{ $session->ip_address }}
-                                    </span>
-                                    <span class="flex items-center gap-1 text-xs text-gray-500">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                        {{ $session->browser }}
-                                    </span>
-                                    <span class="text-xs text-gray-500">{{ $session->os }}</span>
-                                    <span class="flex items-center gap-1 text-xs text-gray-400">
-                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Aktif {{ $session->last_activity->diffForHumans() }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {{-- Action --}}
-                            <div class="flex-shrink-0">
-                                @if (!$session->is_current)
-                                    <button type="button" wire:click="forceLogout('{{ $session->session_id }}')"
-                                        wire:confirm="Force logout sesi {{ $session->user?->name }}?"
-                                        wire:loading.attr="disabled"
-                                        class="flex items-center gap-1.5 px-3 py-2 border border-red-300 text-red-600
-                                               text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors
-                                               disabled:opacity-60">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                        </svg>
-                                        Force Logout
-                                    </button>
-                                @else
-                                    <span class="text-xs text-gray-400 italic">—</span>
-                                @endif
-                            </div>
-
-                        </div>
-
-                        {{-- User Agent Detail (collapsible) --}}
-                        <div x-data="{ open: false }" class="border-t border-gray-50">
-                            <button type="button" @click="open = !open"
-                                class="w-full flex items-center justify-between px-4 py-1.5
-                                       text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
-                                <span>Lihat detail user agent</span>
-                                <svg :class="open ? 'rotate-180' : ''" class="w-3.5 h-3.5 transition-transform"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-collapse class="px-4 pb-3">
-                                <p
-                                    class="text-xs font-mono text-gray-500 break-all bg-gray-50 rounded p-2 border border-gray-100">
-                                    {{ $session->user_agent }}
-                                </p>
-                            </div>
-                        </div>
+    {{-- ═══ FLASH MESSAGES (Modern Toast Style) ═══ --}}
+    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+        @if ($flashSuccess)
+            <div x-data="{ show: true }" x-show="show" x-transition:enter="transform ease-out duration-300 transition"
+                x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 4000)"
+                class="pointer-events-auto w-full bg-white border-l-4 border-emerald-500 rounded-xl shadow-xl overflow-hidden"
+                role="alert">
+                <div class="p-4 flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
-                @endforeach
+                    <div class="ml-3 w-0 flex-1 pt-0.5">
+                        <p class="text-sm font-bold text-slate-900">Berhasil</p>
+                        <p class="mt-1 text-sm text-slate-500">{{ $flashSuccess }}</p>
+                    </div>
+                    <div class="ml-4 flex-shrink-0 flex">
+                        <button @click="show = false"
+                            class="bg-white rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         @endif
 
-    @endif
-
-
-    {{-- ══════════════════════ TAB: LOG AKTIVITAS ══════════════════════ --}}
-    @if ($activeTab === 'logs')
-
-        <div class="grid md:grid-cols-3 gap-5">
-
-            {{-- Kolom Kiri: Pilih User + Stats --}}
-            <div class="md:col-span-1 space-y-4">
-
-                {{-- Pilih User --}}
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                        <p class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Pilih User</p>
+        @if ($flashError)
+            <div x-data="{ show: true }" x-show="show" x-transition:enter="transform ease-out duration-300 transition"
+                x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" x-init="setTimeout(() => show = false, 6000)"
+                class="pointer-events-auto w-full bg-white border-l-4 border-rose-500 rounded-xl shadow-xl overflow-hidden"
+                role="alert">
+                <div class="p-4 flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
-                    <div class="p-3">
-                        <select wire:model.live="selectedUserId"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="">— Semua User —</option>
-                            @foreach ($this->allUsers as $u)
-                                <option value="{{ $u->id }}">
-                                    {{ $u->name }} ({{ $u->nik }})
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="ml-3 w-0 flex-1 pt-0.5">
+                        <p class="text-sm font-bold text-slate-900">Terjadi Kesalahan</p>
+                        <p class="mt-1 text-sm text-slate-500">{{ $flashError }}</p>
                     </div>
+                    <div class="ml-4 flex-shrink-0 flex">
+                        <button @click="show = false"
+                            class="bg-white rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
 
-                    {{-- Info User Terpilih --}}
-                    @if ($this->selectedUser)
-                        @php
-                            $roleColor = match ($this->selectedUser->role) {
-                                \App\Enums\UserRole::PicCabang => 'bg-sky-100 text-sky-800',
-                                \App\Enums\UserRole::Akunting => 'bg-emerald-100 text-emerald-800',
-                                \App\Enums\UserRole::KepalaOperasional => 'bg-amber-100 text-amber-800',
-                                \App\Enums\UserRole::SuperAdmin => 'bg-rose-100 text-rose-800',
-                                default => 'bg-gray-100 text-gray-600',
-                            };
-                        @endphp
-                        <div class="px-3 pb-3 pt-0">
-                            <div class="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-                                <div
-                                    class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white text-xs font-bold">
-                                        {{ strtoupper(substr($this->selectedUser->name, 0, 2)) }}
-                                    </span>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs font-semibold text-gray-900 truncate">
-                                        {{ $this->selectedUser->name }}
-                                    </p>
-                                    <p class="text-xs font-mono text-gray-400">{{ $this->selectedUser->nik }}</p>
-                                    <span
-                                        class="inline-flex mt-0.5 text-xs {{ $roleColor }} px-1.5 py-0.5 rounded-full font-medium">
-                                        {{ $this->selectedUser->roleLabel() }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+    {{-- ═══ TOP COMMAND BAR ═══ --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+
+        {{-- Live Indicator --}}
+        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm w-fit">
+            <div class="relative flex h-3 w-3">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+            </div>
+            <span class="text-sm font-bold text-slate-700 tracking-wide">LIVE</span>
+            <div class="w-px h-4 bg-slate-300"></div>
+            <span class="text-xs font-medium text-slate-500">Auto-refresh tiap 60 detik</span>
+        </div>
+
+        {{-- Danger Action --}}
+        <div>
+            <button type="button" x-on:click.prevent="showForceLogoutAllModal = true"
+                class="flex items-center justify-center gap-2 px-5 py-2.5 bg-white border-2 border-rose-100 text-rose-600 text-sm font-bold rounded-xl hover:bg-rose-600 hover:text-white hover:border-rose-600 focus:ring-4 focus:ring-rose-100 transition-all shadow-sm flex-shrink-0 group">
+                <svg class="w-4 h-4 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Force Logout Semua Sesi
+            </button>
+        </div>
+    </div>
+
+    {{-- ══════════════════════ DATA TABLE CONTAINER ══════════════════════ --}}
+    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden relative">
+
+        {{-- Filter Bar (Sleek Inline Design) --}}
+        <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center gap-4">
+
+            <div class="flex-1">
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" wire:model.live.debounce.300ms="search"
+                        placeholder="Cari nama pengguna atau NIK..."
+                        class="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow">
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="w-full sm:w-48">
+                    <select wire:model.live="role"
+                        class="block w-full py-2.5 px-4 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow appearance-none cursor-pointer">
+                        <option value="">Semua Role</option>
+                        @foreach (\App\Enums\UserRole::cases() as $r)
+                            <option value="{{ $r->value }}">{{ $r->label() }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
-                {{-- Stats User Terpilih --}}
-                @if ($this->selectedUser && $this->userActivityStats)
-                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                            <p class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Statistik Aktivitas
-                            </p>
-                        </div>
-                        <div class="divide-y divide-gray-50">
-                            <div class="px-4 py-3 flex justify-between items-center">
-                                <span class="text-xs text-gray-500">Total Log</span>
-                                <span
-                                    class="text-sm font-bold text-gray-900">{{ number_format($this->userActivityStats['total']) }}</span>
-                            </div>
-                            <div class="px-4 py-3 flex justify-between items-center">
-                                <span class="text-xs text-gray-500">30 Hari Terakhir</span>
-                                <span
-                                    class="text-sm font-bold text-indigo-600">{{ number_format($this->userActivityStats['last_30']) }}</span>
-                            </div>
-                            @if ($this->userActivityStats['last_activity'])
-                                <div class="px-4 py-3">
-                                    <span class="text-xs text-gray-500 block mb-0.5">Aktivitas Terakhir</span>
-                                    <span class="text-xs font-medium text-gray-700">
-                                        {{ $this->userActivityStats['last_activity']->created_at->locale('id')->isoFormat('D MMM Y, HH:mm') }}
-                                    </span>
-                                    <span class="text-xs text-gray-400 block">
-                                        {{ $this->userActivityStats['last_activity']->created_at->diffForHumans() }}
-                                    </span>
-                                </div>
-                            @endif
-                        </div>
+                <div class="w-full sm:w-56">
+                    <select wire:model.live="cabang"
+                        class="block w-full py-2.5 px-4 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow appearance-none cursor-pointer">
+                        <option value="">Semua Lokasi / Cabang</option>
+                        @foreach ($this->cabangs as $c)
+                            <option value="{{ $c->id }}">{{ $c->nama_cabang }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                        {{-- Breakdown by Category --}}
-                        @if ($this->userActivityStats['by_category']->isNotEmpty())
-                            <div class="px-4 py-3 border-t border-gray-100">
-                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Per
-                                    Kategori (30 hr)</p>
-                                <div class="space-y-1.5">
-                                    @foreach ($this->userActivityStats['by_category'] as $cat => $count)
-                                        <div class="flex items-center gap-2">
-                                            <div class="flex-1 flex items-center gap-2">
-                                                <span
-                                                    class="text-xs text-gray-600 font-mono">{{ $cat ?? 'default' }}</span>
-                                            </div>
-                                            <span
-                                                class="text-xs font-semibold text-gray-800">{{ $count }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                    </div>
+                @if ($search || $role || $cabang)
+                    <button type="button" wire:click="resetFilters" title="Reset Pencarian"
+                        class="px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center shadow-sm">
+                        Reset
+                    </button>
                 @endif
             </div>
+        </div>
 
-            {{-- Kolom Kanan: Filter + Tabel Log --}}
-            <div class="md:col-span-2 space-y-4">
+        {{-- Tabel Data --}}
+        <div class="overflow-x-auto min-h-[300px]">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-white border-b border-slate-100">
+                        <th class="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-80">Profil
+                            Pengguna</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-48">Role &
+                            Penempatan</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-40">Status
+                            Koneksi</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Detail Sesi
+                            Aktif</th>
+                        <th
+                            class="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right w-40">
+                            AKSI</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @forelse ($this->users as $user)
+                        @php
+                            $roleColor = match ($user->role) {
+                                \App\Enums\UserRole::PicCabang => 'bg-sky-50 text-sky-700 border-sky-200',
+                                \App\Enums\UserRole::Akunting => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                \App\Enums\UserRole::KepalaOperasional => 'bg-amber-50 text-amber-700 border-amber-200',
+                                \App\Enums\UserRole::SuperAdmin => 'bg-rose-50 text-rose-700 border-rose-200',
+                                default => 'bg-slate-50 text-slate-600 border-slate-200',
+                            };
+                            $isMe = $user->is_current ?? false;
+                        @endphp
+                        <tr class="transition-colors group hover:bg-slate-50 {{ $isMe ? 'bg-indigo-50/20' : '' }}">
 
-                {{-- Filter Log --}}
-                <div class="bg-white rounded-xl border border-gray-200 p-4">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Kategori</label>
-                            <select wire:model.live="selectedLogName"
-                                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs
-                                       focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">Semua</option>
-                                @foreach ($this->logNames as $ln)
-                                    <option value="{{ $ln }}">{{ ucfirst($ln ?? 'default') }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Dari</label>
-                            <input type="date" wire:model.live="logDari"
-                                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs
-                                       focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Sampai</label>
-                            <input type="date" wire:model.live="logSampai"
-                                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs
-                                       focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div class="flex items-end">
-                            <button type="button" wire:click="resetLogFilter"
-                                class="w-full px-3 py-1.5 border border-gray-300 text-gray-600 text-xs rounded-lg
-                                       hover:bg-gray-50 transition-colors">
-                                Reset Filter
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                            {{-- Kolom: Profil Pengguna --}}
+                            <td class="px-8 py-4">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="relative w-12 h-12 rounded-[1rem] flex items-center justify-center flex-shrink-0 font-bold text-white shadow-sm border border-slate-100
+                                                {{ $isMe ? 'bg-indigo-600' : 'bg-slate-700' }}">
+                                        {{ strtoupper(substr($user->name, 0, 2)) }}
 
-                {{-- Tabel Log --}}
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    @php $logs = $this->userLogs; @endphp
-
-                    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                        <p class="text-xs font-semibold text-gray-700">
-                            {{ number_format($logs->total()) }} log
-                            @if ($this->selectedUser)
-                                dari <strong>{{ $this->selectedUser->name }}</strong>
-                            @else
-                                dari semua user
-                            @endif
-                        </p>
-                        <p class="text-xs text-gray-400">
-                            Halaman {{ $logs->currentPage() }} / {{ $logs->lastPage() }}
-                        </p>
-                    </div>
-
-                    @if ($logs->isEmpty())
-                        <div class="py-10 text-center">
-                            <p class="text-sm text-gray-400">Tidak ada log ditemukan.</p>
-                        </div>
-                    @else
-                        <div class="divide-y divide-gray-50">
-                            @foreach ($logs as $log)
-                                <div x-data="{ open: false }" class="px-4 py-3 hover:bg-gray-50 transition-colors">
-                                    <div class="flex items-start gap-3">
-
-                                        {{-- Category Badge --}}
-                                        <span
-                                            class="flex-shrink-0 mt-0.5 inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                                                     {{ match ($log->log_name) {
-                                                         'laporan' => 'bg-blue-100 text-blue-700',
-                                                         'periode' => 'bg-indigo-100 text-indigo-700',
-                                                         'export' => 'bg-emerald-100 text-emerald-700',
-                                                         'import' => 'bg-teal-100 text-teal-700',
-                                                         'database' => 'bg-gray-100 text-gray-700',
-                                                         'monitoring' => 'bg-red-100 text-red-700',
-                                                         'pencatatan' => 'bg-cyan-100 text-cyan-700',
-                                                         'registrasi' => 'bg-amber-100 text-amber-700',
-                                                         'profile' => 'bg-pink-100 text-pink-700',
-                                                         'user' => 'bg-violet-100 text-violet-700',
-                                                         default => 'bg-gray-100 text-gray-600',
-                                                     } }}">
-                                            {{ $log->log_name ?? 'default' }}
-                                        </span>
-
-                                        {{-- Content --}}
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-xs text-gray-800 leading-snug">{{ $log->description }}</p>
-                                            <div class="flex items-center gap-3 mt-1 flex-wrap">
-                                                {{-- User (jika menampilkan semua user) --}}
-                                                @if (!$this->selectedUser && $log->causer)
-                                                    <span class="text-xs text-indigo-600 font-medium">
-                                                        {{ $log->causer->name }}
-                                                    </span>
-                                                @endif
-                                                <span class="text-xs text-gray-400">
-                                                    {{ $log->created_at->locale('id')->isoFormat('D MMM Y, HH:mm') }}
-                                                </span>
-                                                <span class="text-xs text-gray-300">
-                                                    {{ $log->created_at->diffForHumans() }}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {{-- Toggle Properties --}}
-                                        @if ($log->properties && $log->properties->isNotEmpty())
-                                            <button type="button" @click="open = !open"
-                                                class="text-xs text-gray-400 hover:text-indigo-600 transition-colors flex-shrink-0">
-                                                <svg :class="open ? 'rotate-180' : ''"
-                                                    class="w-4 h-4 transition-transform" fill="none"
-                                                    stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </button>
+                                        {{-- Online/Offline Ping Dot --}}
+                                        @if ($user->is_online)
+                                            <span class="absolute -bottom-1 -right-1 flex h-4 w-4">
+                                                <span
+                                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span
+                                                    class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white"></span>
+                                            </span>
+                                        @else
+                                            <span
+                                                class="absolute -bottom-1 -right-1 block w-4 h-4 bg-slate-300 border-2 border-white rounded-full"></span>
                                         @endif
                                     </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-bold text-slate-900 flex items-center gap-2 truncate">
+                                            {{ $user->name }}
+                                            @if ($isMe)
+                                                <span
+                                                    class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 font-bold tracking-wider flex-shrink-0">
+                                                    SAYA
+                                                </span>
+                                            @endif
+                                        </p>
+                                        <p class="text-xs text-slate-500 font-mono mt-0.5 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                            </svg>
+                                            {{ $user->nik }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </td>
 
-                                    {{-- Properties Panel --}}
-                                    @if ($log->properties && $log->properties->isNotEmpty())
-                                        <div x-show="open" x-collapse class="mt-2 ml-16">
-                                            <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
-                                                @foreach ($log->properties as $key => $val)
-                                                    @if (!in_array($key, ['old', 'new']))
-                                                        <div class="flex items-start gap-2 text-xs">
-                                                            <span
-                                                                class="font-mono font-semibold text-gray-500 flex-shrink-0 w-28">{{ $key }}:</span>
-                                                            <span
-                                                                class="text-gray-700 break-all">{{ is_array($val) ? json_encode($val, JSON_UNESCAPED_UNICODE) : $val }}</span>
-                                                        </div>
-                                                    @endif
-                                                @endforeach
+                            {{-- Kolom: Role & Penempatan --}}
+                            <td class="px-6 py-4 align-middle">
+                                <div class="flex flex-col items-start gap-1.5">
+                                    <span
+                                        class="inline-flex text-[11px] {{ $roleColor }} border px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">
+                                        {{ $user->roleLabel() }}
+                                    </span>
+                                    <span
+                                        class="text-xs font-medium text-slate-600 flex items-center gap-1.5 truncate max-w-full">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        @if ($user->cabang)
+                                            {{ $user->cabang->nama_cabang }}
+                                        @else
+                                            Kantor Pusat
+                                        @endif
+                                    </span>
+                                </div>
+                            </td>
 
-                                                {{-- Old/New diff khusus --}}
-                                                @if ($log->properties->has('old') || $log->properties->has('new'))
-                                                    <div
-                                                        class="grid grid-cols-2 gap-2 mt-1.5 border-t border-gray-200 pt-1.5">
-                                                        @if ($log->properties->has('old'))
-                                                            <div>
-                                                                <p class="text-xs font-semibold text-gray-400 mb-1">
-                                                                    Sebelum</p>
-                                                                @foreach ($log->properties['old'] ?? [] as $k => $v)
-                                                                    <p class="text-xs font-mono text-gray-500">
-                                                                        {{ $k }}: {{ $v }}</p>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
-                                                        @if ($log->properties->has('new'))
-                                                            <div>
-                                                                <p class="text-xs font-semibold text-emerald-600 mb-1">
-                                                                    Sesudah</p>
-                                                                @foreach ($log->properties['new'] ?? [] as $k => $v)
-                                                                    <p class="text-xs font-mono text-emerald-700">
-                                                                        {{ $k }}: {{ $v }}</p>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
+                            {{-- Kolom: Status Koneksi --}}
+                            <td class="px-6 py-4 align-middle">
+                                @if ($user->is_online)
+                                    <span class="text-sm font-bold text-emerald-600">Online</span>
+                                @else
+                                    <span class="text-sm font-semibold text-slate-400">Offline</span>
+                                @endif
+                                <p class="text-xs text-slate-500 font-medium mt-0.5">
+                                    @if ($user->is_online)
+                                        Aktif {{ $user->last_seen ? $user->last_seen->diffForHumans() : 'baru saja' }}
+                                    @else
+                                        Terakhir:
+                                        {{ $user->last_seen ? $user->last_seen->diffForHumans() : 'Belum Pernah' }}
+                                    @endif
+                                </p>
+                            </td>
+
+                            {{-- Kolom: Detail Sesi --}}
+                            <td class="px-6 py-4 align-middle">
+                                @if ($user->is_online && $user->session_id)
+                                    <div class="flex flex-col gap-1.5">
+                                        <span
+                                            class="flex items-center gap-2 text-xs font-mono text-slate-600 bg-slate-50 border border-slate-100 px-2 py-1 rounded w-fit">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                            </svg>
+                                            {{ $user->ip_address }}
+                                        </span>
+                                        <span class="flex items-center gap-2 text-xs font-medium text-slate-500">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                            {{ $user->browser }} &bull; {{ $user->os }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="text-xs font-medium text-slate-300 italic">Data sesi tidak
+                                        tersedia</span>
+                                @endif
+                            </td>
+
+                            {{-- Kolom: Tindakan --}}
+                            <td class="px-8 py-4 align-middle text-right">
+                                <div
+                                    class="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+
+                                    <a href="{{ route('admin.user-monitor.show', $user->id) }}"
+                                        title="Lihat Riwayat Aktivitas"
+                                        class="flex items-center justify-center p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </a>
+
+                                    @if ($user->is_online && !$isMe)
+                                        <button type="button"
+                                            x-on:click.prevent="selectedSessionId = '{{ $user->session_id }}'; selectedUserName = '{{ $user->name }}'; showForceLogoutModal = true"
+                                            title="Cabut Akses Sesi Ini"
+                                            class="flex items-center justify-center p-2 bg-white border border-rose-200 text-rose-500 rounded-xl hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition-all focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2.5"
+                                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                        </button>
                                     @endif
                                 </div>
-                            @endforeach
-                        </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-8 py-16 text-center">
+                                <div
+                                    class="w-20 h-20 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 mb-1">Tidak Ditemukan Pengguna</h3>
+                                <p class="text-sm text-slate-500">Coba ubah kata kunci atau filter pencarian Anda di
+                                    atas.</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-                        {{-- Pagination --}}
-                        @if ($logs->lastPage() > 1)
-                            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-                                <button type="button" wire:click="previousPage"
-                                    :disabled="{{ $logs->currentPage() }} === 1"
-                                    class="flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-300 rounded-lg
-                                           text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                                    {{ $logs->currentPage() === 1 ? 'disabled' : '' }}>
-                                    ← Sebelumnya
-                                </button>
-                                <span class="text-xs text-gray-500">
-                                    {{ $logs->firstItem() }}–{{ $logs->lastItem() }} dari {{ $logs->total() }}
-                                </span>
-                                <button type="button" wire:click="nextPage({{ $logs->lastPage() }})"
-                                    {{ $logs->currentPage() === $logs->lastPage() ? 'disabled' : '' }}
-                                    class="flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-300 rounded-lg
-                                           text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                                    Berikutnya →
-                                </button>
-                            </div>
-                        @endif
-                    @endif
+        {{-- Pagination --}}
+        @if ($this->users->hasPages())
+            <div class="px-8 py-4 border-t border-slate-100 bg-slate-50/50">
+                {{ $this->users->links() }}
+            </div>
+        @endif
+    </div>
+
+    {{-- ═══ CONFIRM MODAL — FORCE LOGOUT INDIVIDUAL ═══ --}}
+    <div x-show="showForceLogoutModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showForceLogoutModal = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+            @keydown.escape.window="showForceLogoutModal = false">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-bold text-slate-900">Konfirmasi Force Logout</h3>
+                    <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+                        PERINGATAN! Sesi pengguna <span class="font-bold text-rose-600"
+                            x-text="selectedUserName"></span> akan dihentikan paksa. Lanjutkan?
+                    </p>
                 </div>
             </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" @click="showForceLogoutModal = false"
+                    class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-slate-300">
+                    Batal
+                </button>
+                <button type="button" @click="$wire.forceLogout(selectedSessionId); showForceLogoutModal = false"
+                    class="px-5 py-2.5 text-sm font-bold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-colors focus:ring-4 focus:ring-rose-200">
+                    Ya, Force Logout
+                </button>
+            </div>
         </div>
-    @endif
+    </div>
+
+    {{-- ═══ CONFIRM MODAL — FORCE LOGOUT ALL ═══ --}}
+    <div x-show="showForceLogoutAllModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showForceLogoutAllModal = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+            @keydown.escape.window="showForceLogoutAllModal = false">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-bold text-slate-900">Konfirmasi Force Logout Semua</h3>
+                    <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+                        PERINGATAN! Anda akan mengeluarkan (Logout) secara paksa <span class="font-bold">SEMUA</span>
+                        pengguna yang sedang aktif, <span class="font-bold">KECUALI</span> Anda sendiri. Lanjutkan?
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" @click="showForceLogoutAllModal = false"
+                    class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-slate-300">
+                    Batal
+                </button>
+                <button type="button" @click="$wire.forceLogoutAll(); showForceLogoutAllModal = false"
+                    class="px-5 py-2.5 text-sm font-bold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-colors focus:ring-4 focus:ring-rose-200">
+                    Ya, Force Logout Semua
+                </button>
+            </div>
+        </div>
+    </div>
 
 </div>
