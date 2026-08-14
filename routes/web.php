@@ -124,6 +124,7 @@ Route::get('/monitoring/{cabang}',   [MonitoringController::class, 'show'])->nam
             Route::post('/periode',         [PeriodeController::class, 'store'])->name('periode.store');
             Route::post('/periode/generate-suggested',    [PeriodeController::class, 'generateSuggested'])->name('periode.generate-suggested');
             Route::get('/periode/{periode}',              [PeriodeController::class, 'show'])->name('periode.show');
+            Route::delete('/periode/{periode}',           [PeriodeController::class, 'destroy'])->name('periode.destroy');
 
             // audit
             Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');

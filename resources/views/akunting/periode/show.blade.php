@@ -25,6 +25,10 @@
             @endif
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="{{ route('akunting.periode.index') }}"
+                class="text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                ← Kembali
+            </a>
             <a href="{{ route('akunting.periode.export', $periode) }}"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[--color-border-default] text-[--color-text-secondary] text-xs font-medium rounded-lg hover:bg-[--color-bg-subtle] hover:border-[--color-border-strong] transition-all">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

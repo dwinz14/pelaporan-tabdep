@@ -17,11 +17,8 @@
 
             {{-- Header --}}
             <div class="bg-slate-900 px-8 py-6 text-center">
-                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span class="text-white font-bold text-lg">SI</span>
-                </div>
                 <h1 class="text-white font-semibold text-lg">Daftar Akun Baru</h1>
-                <p class="text-slate-400 text-sm mt-0.5">SI Stok Buku Tabungan & Deposito</p>
+                <p class="text-slate-400 text-sm mt-0.5">TabDeb-HUB</p>
             </div>
 
             {{-- Info Banner --}}
@@ -184,7 +181,6 @@
                         </svg>
                         <p class="text-xs text-gray-500">
                             Registrasi mandiri hanya untuk <strong>PIC Cabang</strong>.
-                            Role lain didaftarkan langsung oleh Super Admin.
                         </p>
                     </div>
 

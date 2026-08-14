@@ -14,4 +14,5 @@ interface PeriodeLaporanRepositoryInterface
     public function update(PeriodeLaporan $periode, array $data): PeriodeLaporan;
     public function resetAllCurrent(): void;
     public function existsByTanggal(string $tanggal): bool;
+    public function delete(PeriodeLaporan $periode): void;
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\StatusOperasional;
+use App\Enums\StatusVerifikasi;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -49,6 +50,14 @@ class PeriodeLaporan extends Model
     public function isLocked(): bool
     {
         return $this->status_operasional === StatusOperasional::Verified;
+    }
+
+    public function canDelete(): bool
+    {
+        return ! $this->isLocked()
+            && $this->laporans()
+                ->where('status_verifikasi', '!=', StatusVerifikasi::Draft)
+                ->doesntExist();
     }
 
     public function totalCabangAktif(): int

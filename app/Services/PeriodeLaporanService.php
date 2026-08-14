@@ -138,6 +138,38 @@ class PeriodeLaporanService
     }
 
     /**
+     * Hapus periode beserta seluruh laporannya (cascade).
+     * Hanya diperbolehkan jika periode masih pending dan belum ada laporan
+     * yang disubmit/diverifikasi — untuk mengakomodasi periode yang salah generate.
+     */
+    public function delete(PeriodeLaporan $periode): void
+    {
+        if ($periode->isLocked()) {
+            abort(422, 'Periode ini sudah diverifikasi final, tidak dapat dihapus.');
+        }
+
+        if (! $periode->canDelete()) {
+            abort(422, 'Periode tidak dapat dihapus karena sudah ada laporan yang disubmit atau diverifikasi.');
+        }
+
+        $jumlahLaporan = $periode->laporans()->count();
+
+        DB::transaction(function () use ($periode) {
+            $this->repo->delete($periode);
+        });
+
+        activity('periode')
+            ->performedOn($periode)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'nama_periode'   => $periode->nama_periode,
+                'tanggal_akhir'  => $periode->tanggal_akhir->format('Y-m-d'),
+                'jumlah_laporan' => $jumlahLaporan,
+            ])
+            ->log("Periode {$periode->nama_periode} dihapus beserta {$jumlahLaporan} laporannya");
+    }
+
+    /**
      * Saran generate periode berikutnya.
      * Logika: tanggal_akhir periode terbaru + 14 hari.
      * Muncul ketika: today >= (tanggal_saran - 1 hari) DAN periode tersebut belum ada.

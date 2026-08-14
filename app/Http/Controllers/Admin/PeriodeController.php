@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 
 class PeriodeController extends Controller
@@ -101,5 +102,21 @@ class PeriodeController extends Controller
             'subtitle' => 'Detail laporan seluruh cabang',
             'periode'  => $periode,
         ]);
+    }
+
+    /**
+     * Hapus periode yang salah generate (hanya pending tanpa laporan ter-submit).
+     */
+    public function destroy(PeriodeLaporan $periode): RedirectResponse
+    {
+        try {
+            $this->service->delete($periode);
+
+            return redirect()->route('admin.periode.index')
+                ->with('success', "Periode \"{$periode->nama_periode}\" beserta seluruh laporannya berhasil dihapus.");
+        } catch (HttpExceptionInterface $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
     }
 }

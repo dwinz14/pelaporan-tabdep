@@ -63,4 +63,9 @@ class PeriodeLaporanRepository implements PeriodeLaporanRepositoryInterface
     {
         return PeriodeLaporan::where('tanggal_akhir', $tanggal)->exists();
     }
+
+    public function delete(PeriodeLaporan $periode): void
+    {
+        $periode->delete();
+    }
 }
